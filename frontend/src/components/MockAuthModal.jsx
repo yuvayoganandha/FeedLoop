@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Phone, Lock, ChevronRight, ShieldCheck, Globe, Zap } from 'lucide-react';
 import { API_ENDPOINTS } from '../config';
 
