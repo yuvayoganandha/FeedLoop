@@ -33,36 +33,50 @@
 
 ---
 
-## 🚀 Getting Started
+## ⚙️ Environment Configuration
 
-### 1. Backend Server Setup
-```bash
-cd backend
-npm install
-# Configure your .env (PORT, MONGO_URI, JWT_SECRET)
-node server.js
-```
+To run **FeedLoop** locally, you must configure the backend environment variables. 
 
-### 2. Frontend Application Setup
-```bash
-cd frontend
-npm install
-npm run dev
+1. Create a `.env` file in the `backend/` directory.
+2. Follow the detailed template below:
+
+```ini
+# Server Port (Default is 5000)
+PORT=5000
+
+# MongoDB Atlas Connection String
+# Get this from your Atlas Cluster -> Connect -> Drivers
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/feedloop?retryWrites=true&w=majority
+
+# Secret key for JWT Authentication
+# Use a long, complex string for security
+JWT_SECRET=your_super_secret_feedloop_key_here
+
+# Mode (development or production)
+NODE_ENV=development
 ```
 
 ---
 
-## 👤 How to Use
+## 🛠️ Troubleshooting & Common Fixes
 
-### For Donors:
-1.  **Post a Donation**: Enter the food name, quantity, and current location. Your registered mobile number is automatically included for rescuers.
-2.  **Manage**: Track your active donations in your dashboard. You can edit details if things change.
-3.  **Complete**: Once someone picks up the food, click **"Confirm Collection & Clear"** to remove it from the global map.
+### 1. "Failed to fetch" or WebSocket Error
+**Problem**: Firefox or Chrome cannot establish a connection to `localhost:5000`.
+**Solution**: Ensure your frontend is connecting via **`127.0.0.1`** instead of `localhost`. This avoids IPv4/IPv6 resolution mismatches. FeedLoop is pre-configured to use `127.0.0.1` for maximum stable connectivity.
 
-### For Rescuers:
-1.  **Search**: Use the Map or List view to find surplus food nearby.
-2.  **Contact**: Use the **"Tap to Call"** button to quickly coordinate with the donor.
-3.  **Navigate**: Click **"Get Directions"** to see the fastest route directly on the map.
+### 2. "tel:undefined" in Browser Logs
+**Problem**: The "Tap to Call" feature shows `undefined` or fails to navigate.
+**Solution**: This typically happens on old records without phone data. We have implemented a **Profile Fallback**—ensure every user has a phone number set during profile setup. Check your network console to verify `donor.phone` is being populated.
+
+### 3. MongoDB Connection Timeout
+**Problem**: Your backend won't start due to a database connection error.
+**Solution**: 
+- Whitelist your IP in **MongoDB Atlas** (Network Access -> Add IP Address).
+- Ensure your `MONGO_URI` password doesn't contain special characters like `@` or `#` (URL encode them if they do).
+
+### 4. Laptop Navigation Warnings
+**Problem**: Browser blocks `tel:` links on desktop/laptop.
+**Solution**: This is a security feature on non-mobile devices. We have added a **"Copy to Clipboard"** button on every food card so you can copy the number and use it externally.
 
 ---
 
