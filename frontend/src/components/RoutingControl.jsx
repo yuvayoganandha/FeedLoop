@@ -34,12 +34,14 @@ const RoutingControl = ({ start, end }) => {
       showAlternatives: false,
       lineOptions: {
         styles: [
-          { color: '#06b6d4', opacity: 0.8, weight: 6 }, // Neon Cyan
-          { color: 'white', opacity: 0.3, weight: 2 }    // Inner highlight
-        ]
+          { color: '#4285F4', opacity: 0.9, weight: 8 }, // Google Blue (Primary)
+          { color: 'white', opacity: 0.4, weight: 3 }    // Highlight
+        ],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
       },
-      createMarker: () => null, // Hide default numbered markers
-      show: false // Hide the textual directions panel by default
+      createMarker: () => null,
+      show: false
     }).addTo(map);
 
     return () => {
