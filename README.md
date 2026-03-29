@@ -2,6 +2,8 @@
 
 > **Redistributing Surplus. Reducing Waste. Feeding Communities.**
 
+**Live App:** [feed-loop.vercel.app](https://feed-loop.vercel.app)
+
 **FeedLoop** is a high-fidelity web platform designed to eliminate food waste by bridging the gap between donors (individuals, restaurants, hotels) and local food rescuers. Our mission is to ensure that no edible food goes to waste, providing a seamless, real-time coordination tool for the community.
 
 ---
