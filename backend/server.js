@@ -71,8 +71,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => console.log(`🔌 User disconnected: ${socket.id}`));
 });
 
-// Catch-all API 404
-app.use('/api/*', (req, res) => {
+// Catch-all API 404 (Compatible with Express 5 path-to-regexp)
+app.use('/api', (req, res) => {
     res.status(404).json({ message: `API Endpoint Not Found: ${req.originalUrl}` });
 });
 
