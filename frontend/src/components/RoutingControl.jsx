@@ -15,13 +15,16 @@ const RoutingControl = ({ start, end }) => {
   useEffect(() => {
     if (!map || !start || !end) return;
 
-    console.log("📍 Routing initialized targeting:", end);
+    console.log("📍 Long-distance Routing Initialized:", start, "to", end);
 
     const routingControl = L.Routing.control({
       waypoints: [
         L.latLng(start[0], start[1]),
         L.latLng(end[0], end[1])
       ],
+      router: L.Routing.osrmv1({
+        serviceUrl: `https://routing.openstreetmap.de/routed-car/route/v1/driving`
+      }),
       routeWhileDragging: false,
       addWaypoints: false,
       draggableWaypoints: false,
@@ -29,24 +32,22 @@ const RoutingControl = ({ start, end }) => {
       showAlternatives: false,
       lineOptions: {
         styles: [
-          { color: '#4285F4', opacity: 0.9, weight: 12 }, // Thicker Google Blue
-          { color: 'white', opacity: 0.5, weight: 4 }     // Inner highlight
+          { color: '#4285F4', opacity: 0.9, weight: 10 }, // Robust Google Blue
+          { color: 'white', opacity: 0.4, weight: 3 }     // Inner highlight for contrast
         ],
         extendToWaypoints: true,
         missingRouteTolerance: 0
       },
-      createMarker: () => null, // Hide default marker icons
-      show: false // Hide text instructions panel
+      createMarker: () => null, // Marker management is handled by MapComponent
+      show: false // Explicitly hide the instructions panel
     }).addTo(map);
 
-    // Force a map resize/refresh after adding control
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);
+    // Ensure the routing panel container is hidden to prevent glitches
+    const container = document.querySelector('.leaflet-routing-container');
+    if (container) container.style.display = 'none';
 
     return () => {
       if (map && routingControl) {
-        console.log("🗑️ Clearing previous route");
         map.removeControl(routingControl);
       }
     };

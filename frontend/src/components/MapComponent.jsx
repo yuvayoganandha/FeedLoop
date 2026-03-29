@@ -33,13 +33,13 @@ const MapComponent = ({ foods, userLocation }) => {
   
   const center = userLocation ? [userLocation.lat, userLocation.lng] : [13.0827, 80.2707];
 
-  // Stop auto-recentering after the first successful fly-to
+  // Stop all automated recentering. flyTo only triggers when shouldRecenter is manually set to true.
   useEffect(() => {
-    if (userLocation && shouldRecenter) {
+    if (shouldRecenter) {
       const timer = setTimeout(() => setShouldRecenter(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [userLocation, shouldRecenter]);
+  }, [shouldRecenter]);
 
   return (
     <div className="h-full w-full rounded-[2rem] overflow-hidden border border-[#dadce0] shadow-sm z-0 relative bg-[#f1f3f4]">
