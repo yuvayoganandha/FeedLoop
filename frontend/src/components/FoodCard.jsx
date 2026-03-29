@@ -79,7 +79,7 @@ const FoodCard = ({ food, user }) => {
       )}
 
       {/* Hero Image Section */}
-      <div className="h-48 bg-[#f1f3f4] relative overflow-hidden shrink-0">
+      <div className="aspect-[16/10] bg-[#f1f3f4] relative overflow-hidden shrink-0">
           {food.image ? (
               <img src={getImageUrl(food.image)} alt={food.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
           ) : (
@@ -116,50 +116,50 @@ const FoodCard = ({ food, user }) => {
 
           {/* Actionable Contact Block (Superior Redesign) */}
           <div className="mt-auto space-y-4">
-              <div className="bg-[#f8f9fa] p-4 rounded-xl border border-[#dadce0] flex items-center justify-between group/contact transition-all shadow-sm">
-                  <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 shrink-0 bg-[#e8f0fe] rounded-lg flex items-center justify-center text-[#4285f4]">
+              <div className="bg-[#f8f9fa] p-4 rounded-xl border border-[#dadce0] flex items-center justify-between group/contact transition-all hover:bg-white hover:border-[#4285f4]/30 shadow-sm min-h-[72px]">
+                  <div className="flex items-center space-x-3 overflow-hidden">
+                      <div className="h-10 w-10 shrink-0 bg-[#e8f0fe] rounded-lg flex items-center justify-center text-[#4285f4] shadow-sm">
                           <PhoneCall className="h-5 w-5" />
                       </div>
-                      <div>
-                          <p className="text-[9px] font-bold text-[#70757a] uppercase tracking-widest leading-none mb-1">Donor Mobile</p>
-                          <p className="text-lg font-bold text-[#202124] tracking-tight leading-none select-all">{food.phone || (food.donor && food.donor.phone) || 'Contact Donor'}</p>
+                      <div className="overflow-hidden">
+                          <p className="text-[9px] font-black text-[#70757a] uppercase tracking-widest leading-none mb-1.5 opacity-80">Donor Mobile</p>
+                          <p className="text-lg font-black text-[#202124] tracking-tight leading-none select-all truncate">{food.phone || (food.donor && food.donor.phone) || 'Contact Donor'}</p>
                       </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 shrink-0 ml-2">
                       <button 
                           onClick={() => {
                               navigator.clipboard.writeText(food.phone || (food.donor && food.donor.phone) || '');
                               alert('Phone number copied!');
                           }}
-                          className="p-2.5 shrink-0 inline-flex items-center justify-center bg-white text-[#5f6368] hover:text-[#4285f4] rounded-lg border border-[#dadce0] hover:border-[#4285f4]/30 transition-all active:scale-90"
+                          className="h-9 w-9 shrink-0 inline-flex items-center justify-center bg-white text-[#5f6368] hover:text-[#4285f4] rounded-lg border border-[#dadce0] hover:border-[#4285f4]/30 transition-all active:scale-90 shadow-sm"
                           title="Copy Number"
                       >
                           <Archive className="h-4 w-4" />
                       </button>
-                      <a href={`tel:${food.phone || (food.donor && food.donor.phone) || ''}`} className="p-2.5 shrink-0 bg-[#4285f4] text-white rounded-lg inline-flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all shadow-sm">
+                      <a href={`tel:${food.phone || (food.donor && food.donor.phone) || ''}`} className="h-9 w-9 shrink-0 bg-[#4285f4] text-white rounded-lg inline-flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all shadow-md">
                           <PhoneCall className="h-4 w-4" />
                       </a>
                   </div>
               </div>
 
-              <div className="flex items-start space-x-2 text-[#70757a] text-[10px] font-medium leading-tight uppercase tracking-wider px-1">
-                 <LocateFixed className="h-3.5 w-3.5 shrink-0 text-[#4285f4]/50" />
-                 <span className="line-clamp-1">{food.location?.address || 'Location Hidden'}</span>
-              </div>
+               <div className="flex items-center space-x-2 text-[#70757a] text-[10px] font-bold leading-none uppercase tracking-wider px-1 opacity-70">
+                  <LocateFixed className="h-3.5 w-3.5 shrink-0 text-[#4285f4]/60" />
+                  <span className="truncate">{food.location?.address || 'Location Hidden'}</span>
+               </div>
           </div>
 
           {/* Donor Info & Claim Button */}
           <div className="pt-6 mt-6 border-t border-[#f1f3f4] flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 overflow-hidden">
                   <div className="h-10 w-10 shrink-0 bg-[#f1f3f4] rounded-full flex justify-center items-center text-[#4285f4] font-bold text-sm border border-[#dadce0]">
                       {food.donor?.name?.charAt(0) || <UserCheck className="h-5 w-5" />}
                   </div>
-                  <div className="flex flex-col">
-                      <p className="font-bold text-[#202124] text-xs leading-none tracking-tight">{food.donor?.name || 'Anonymous'}</p>
+                  <div className="flex flex-col overflow-hidden">
+                      <p className="font-bold text-[#202124] text-xs leading-none tracking-tight truncate max-w-[100px]">{food.donor?.name || 'Anonymous'}</p>
                       <div className="flex items-center mt-1.5 space-x-1">
                           <Trophy className="h-3 w-3 text-[#fbbc05]" />
-                          <span className="text-[10px] font-bold text-[#70757a] tracking-wider uppercase">{food.donor?.rating?.toFixed(1) || 'NEW'} RANK</span>
+                          <span className="text-[10px] font-black text-[#70757a] tracking-wider uppercase opacity-80">{food.donor?.rating?.toFixed(1) || 'NEW'} RANK</span>
                       </div>
                   </div>
               </div>

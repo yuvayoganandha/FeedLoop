@@ -129,10 +129,10 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
 
         {/* Impact Scoreboard (Material Style) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in-up">
-            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm flex flex-col items-center text-center">
+            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm flex flex-col items-center text-center text-google-yellow">
                 <p className="text-[#5f6368] text-[10px] font-black uppercase tracking-[0.2em] mb-3">Impact Level</p>
                 <p className="text-5xl font-black text-[#202124] tracking-tighter mb-2">{user.rating?.toFixed(1) || '0.0'}</p>
-                <div className="flex items-center space-x-1 text-[#fbbc05]">
+                <div className="flex items-center space-x-1">
                     {[1, 2, 3, 4, 5].map(i => <Trophy key={i} className={`h-3 w-3 ${i <= user.rating ? 'fill-current' : 'opacity-20'}`} />)}
                 </div>
             </div>
@@ -187,24 +187,24 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                         {activity.donations.length > 0 ? activity.donations.map(food => (
                             <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-5">
+                                    <div className="flex items-center space-x-5 overflow-hidden">
                                         <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
                                             {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                         </div>
-                                        <div>
-                                            <div className="flex items-center space-x-3 mb-1">
-                                                <h4 className="text-lg font-bold text-[#202124] tracking-tight">{food.name}</h4>
-                                                <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${food.status === 'completed' ? 'bg-[#e6f4ea] text-google-green' : food.status === 'claimed' ? 'bg-[#e8f0fe] text-google-blue' : 'bg-[#fff] border border-[#dadce0] text-[#70757a]'}`}>
+                                        <div className="overflow-hidden">
+                                            <div className="flex items-center space-x-3 mb-1 overflow-hidden">
+                                                <h4 className="text-lg font-bold text-[#202124] tracking-tight truncate">{food.name}</h4>
+                                                <span className={`text-[9px] shrink-0 font-black px-3 py-1 rounded-full uppercase tracking-widest ${food.status === 'completed' ? 'bg-[#e6f4ea] text-google-green' : food.status === 'claimed' ? 'bg-[#e8f0fe] text-google-blue' : 'bg-[#fff] border border-[#dadce0] text-[#70757a]'}`}>
                                                     {food.status}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
-                                               <div className="flex items-center space-x-1"><Clock className="h-3.5 w-3.5 text-[#4285f4]" /> <span>{formatDistanceToNow(new Date(food.createdAt), { addSuffix: true })}</span></div>
-                                               <div className="flex items-center space-x-1"><MapPin className="h-3.5 w-3.5 text-[#ea4335]" /> <span>{food.location?.address || 'Nearby'}</span></div>
+                                            <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest overflow-hidden">
+                                               <div className="flex items-center space-x-1 shrink-0"><Clock className="h-3.5 w-3.5 text-[#4285f4]" /> <span>{formatDistanceToNow(new Date(food.createdAt), { addSuffix: true })}</span></div>
+                                               <div className="flex items-center space-x-1 overflow-hidden"><MapPin className="h-3.5 w-3.5 shrink-0 text-[#ea4335]" /> <span className="truncate">{food.location?.address || 'Nearby'}</span></div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-2 shrink-0 ml-4">
                                         {food.status === 'claimed' && (
                                             <button 
                                                 onClick={() => handleComplete(food._id)}
@@ -235,22 +235,22 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                         {activity.claims.length > 0 ? activity.claims.map(food => (
                             <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-5">
+                                  <div className="flex items-center space-x-5 overflow-hidden">
                                       <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
                                           {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                       </div>
-                                      <div>
-                                          <div className="flex items-center space-x-3 mb-1">
-                                              <h4 className="text-lg font-bold text-[#202124] tracking-tight">{food.name}</h4>
-                                              <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest bg-[#e8f0fe] text-google-blue border border-[#4285f4]/20">CLAIMED</span>
+                                      <div className="overflow-hidden">
+                                          <div className="flex items-center space-x-3 mb-1 overflow-hidden">
+                                              <h4 className="text-lg font-bold text-[#202124] tracking-tight truncate">{food.name}</h4>
+                                              <span className="text-[9px] shrink-0 font-black px-3 py-1 rounded-full uppercase tracking-widest bg-[#e8f0fe] text-google-blue border border-[#4285f4]/20">CLAIMED</span>
                                           </div>
-                                          <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
-                                             <div className="flex items-center space-x-1"><UserIcon className="h-3.5 w-3.5 text-[#4285f4]" /> <span>Donor: {food.donor?.name || 'Anonymous'}</span></div>
-                                             <div className="flex items-center space-x-1"><PhoneCall className="h-3.5 w-3.5 text-[#34a853]" /> <span>{food.phone || food.donor?.phone || 'Contact Required'}</span></div>
+                                          <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest overflow-hidden">
+                                             <div className="flex items-center space-x-1 truncate max-w-[150px]"><UserIcon className="h-3.5 w-3.5 shrink-0 text-[#4285f4]" /> <span>Donor: {food.donor?.name || 'Anonymous'}</span></div>
+                                             <div className="flex items-center space-x-1 truncate max-w-[150px]"><PhoneCall className="h-3.5 w-3.5 shrink-0 text-[#34a853]" /> <span>{food.phone || food.donor?.phone || 'Contact Required'}</span></div>
                                           </div>
                                       </div>
                                   </div>
-                                  <div className="flex items-center space-x-3">
+                                  <div className="flex items-center space-x-3 shrink-0 ml-4">
                                       <a href={`tel:${food.phone || food.donor?.phone || ''}`} className="p-3 shrink-0 bg-google-green text-white rounded-xl inline-flex items-center justify-center shadow-sm hover:shadow-md transition-all active:scale-95">
                                           <PhoneCall className="h-5 w-5" />
                                       </a>
