@@ -25,6 +25,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const [locationName, setLocationName] = useState(user.homeLocation?.address || 'Chennai');
+  const [locationSearching, setLocationSearching] = useState(false);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -80,6 +81,42 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   useEffect(() => {
     fetchFoods();
   }, [liveLocation]);
+
+  // Geocode a place name to lat/lng using Nominatim
+  const handleLocationUpdate = async () => {
+    if (!locationInput.trim()) return;
+    setLocationSearching(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'FeedLoop/1.0 (food-rescue-app)',
+            'Accept': 'application/json',
+            'Referer': window.location.origin
+          }
+        }
+      );
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const result = data[0];
+        setLiveLocation({
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon)
+        });
+        setLocationName(result.display_name.split(',')[0]); // Use short name
+        setIsEditingLocation(false);
+        setLocationInput('');
+      } else {
+        alert('Location not found. Please try a different search term.');
+      }
+    } catch (err) {
+      console.error('Geocoding failed:', err);
+      alert('Failed to search location. Please check your connection.');
+    } finally {
+      setLocationSearching(false);
+    }
+  };
 
   if (showProfileSetup || (!user.name && !showProfile)) {
     return <ProfileSetup user={user} onComplete={(updatedUser) => {
@@ -267,17 +304,16 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
                         className="input-dark text-center !rounded-md"
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleLocationUpdate(); }}
                     />
                     <div className="flex space-x-3">
                         <button onClick={() => setIsEditingLocation(false)} className="flex-1 py-2 text-[#5f6368] font-medium hover:bg-[#f1f3f4] rounded-md transition-colors">Cancel</button>
                         <button 
-                            onClick={() => {
-                                setLocationName(locationInput);
-                                setIsEditingLocation(false);
-                            }}
-                            className="flex-1 py-2 bg-google-blue text-white font-medium rounded-md hover:shadow-md transition-all shadow-sm"
+                            onClick={handleLocationUpdate}
+                            disabled={locationSearching || !locationInput.trim()}
+                            className="flex-1 py-2 bg-google-blue text-white font-medium rounded-md hover:shadow-md transition-all shadow-sm disabled:opacity-50"
                         >
-                            Updates
+                            {locationSearching ? 'Searching...' : 'Update'}
                         </button>
                     </div>
                 </div>

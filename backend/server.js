@@ -13,10 +13,26 @@ const userRoutes = require('./routes/user');
 
 const app = express();
 const server = http.createServer(app);
+
+// NOTE: allowedOrigins is defined below with the CORS config block — 
+// Socket.IO origin function reads it at runtime so definition order is fine.
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allows any origin for hackathon purposes
-    methods: ["GET", "POST"]
+    origin: (origin, callback) => {
+        const allowed = [
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            'http://localhost:3000',
+            process.env.FRONTEND_URL
+        ].filter(Boolean);
+        if (!origin || allowed.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`Socket.IO CORS: Origin ${origin} not allowed`));
+        }
+    },
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -27,10 +43,39 @@ if (!fs.existsSync(uploadDir)) {
     console.log('📁 Created Missing [uploads] directory.');
 }
 
-// Middleware
-app.use(cors());
+// CORS Configuration — must be defined before all routes
+// ORB fix: wildcard '*' with Authorization header triggers opaque response blocking.
+// Explicit origin list + credentials:true resolves it.
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    process.env.FRONTEND_URL // Set this on Render/Vercel to your deployed frontend URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow server-to-server requests (no origin) and listed origins
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS: Origin ${origin} not allowed`));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Length'],
+    credentials: true,
+    optionsSuccessStatus: 200 // Fix for legacy browser preflight
+}));
+
 app.use(express.json());
-app.use('/uploads', express.static(uploadDir));
+
+// Serve uploads with CORS headers so images load cross-origin without ORB
+app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(uploadDir));
 
 // Root & Health Check Endpoints (Vital for Render Monitoring)
 app.get('/', (req, res) => {

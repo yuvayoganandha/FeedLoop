@@ -33,7 +33,13 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
     let finalAddress = 'Near your location';
     try {
         setGeocoding(true);
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`, {
+            headers: {
+                'User-Agent': 'FeedLoop/1.0 (food-rescue-app)',
+                'Accept': 'application/json',
+                'Referer': window.location.origin
+            }
+        });
         const data = await res.json();
         finalAddress = data.display_name;
     } catch(err) {
@@ -213,7 +219,7 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
                 disabled={loading}
                 className="w-full bg-google-blue hover:bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all text-sm uppercase tracking-widest disabled:opacity-50"
             >
-                {loading || geocoding ? 'Sychronizing Datastreams...' : 'Initialize Posting'}
+                {loading || geocoding ? 'Synchronizing Datastreams...' : 'Initialize Posting'}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const authReq = require('../middleware/auth');
 
 // A simple in-memory store for mock OTPs (in production, use Redis)
 const otpStore = {};
@@ -77,19 +78,6 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
-// Middleware to authenticate
-const authReq = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'No token' });
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-        req.user = decoded;
-        next();
-    } catch(err) {
-        res.status(401).json({ message: 'Invalid token' });
-    }
-}
 
 // GET /api/auth/me
 router.get('/me', authReq, async (req, res) => {

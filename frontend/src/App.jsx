@@ -7,10 +7,15 @@ import SplashScreen from './components/SplashScreen';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [isSplashing, setIsSplashing] = useState(true);
+  // Only show splash if the intro video actually exists (avoids ORB media fetch error in production)
+  const [isSplashing, setIsSplashing] = useState(false);
 
-  // Clean Material Intro Check
   useEffect(() => {
+    // Check if the intro video resource exists before attempting to show splash
+    fetch('/intro.mp4', { method: 'HEAD' })
+      .then(r => { if (r.ok) setIsSplashing(true); })
+      .catch(() => {}); // silently skip splash if video missing
+
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     if (token && storedUser) {

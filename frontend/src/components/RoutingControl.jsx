@@ -23,11 +23,11 @@ const RoutingControl = ({ start, end }) => {
         const startCoords = `${start[1]},${start[0]}`;
         const endCoords = `${end[1]},${end[0]}`;
         
-        // Use high-reliability OpenStreetMap Deutschland as primary
-        // Use Project OSRM as secondary fallback
+        // Use Project OSRM as primary (proper CORS headers)
+        // Use OpenStreetMap Deutschland as secondary fallback
         const servers = [
-            `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`,
-            `https://router.project-osrm.org/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`
+            `https://router.project-osrm.org/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`,
+            `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`
         ];
 
         let success = false;
@@ -37,7 +37,12 @@ const RoutingControl = ({ start, end }) => {
             
             try {
                 console.log(`🌐 Fetching Navigation Path from: ${new URL(url).hostname}...`);
-                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                const response = await fetch(url, { 
+                    method: 'GET', 
+                    mode: 'cors',
+                    credentials: 'omit',
+                    headers: { 'Accept': 'application/json' }
+                });
                 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 

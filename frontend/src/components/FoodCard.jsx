@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock, MapPin, User, Star, Utensils, Box, Archive, Timer, LocateFixed, UserCheck, Trophy, PackageSearch, PhoneCall, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import RatingModal from './RatingModal';
@@ -8,6 +8,8 @@ const FoodCard = ({ food, user }) => {
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState('');
   const [showRating, setShowRating] = useState(false);
+  const [timeLeft, setTimeLeft] = useState('');
+  const expiryRef = useRef(food.expiryTime);
   
   const getImageUrl = (url) => {
     if (!url) return '';
@@ -15,25 +17,29 @@ const FoodCard = ({ food, user }) => {
     return url;
   };
 
-  const calculateTimeLeft = () => {
-    const difference = new Date(food.expiryTime) - new Date();
-    if (difference <= 0) return 'Expired';
-    
-    const hours = Math.floor((difference / (1000 * 60 * 60)));
-    const minutes = Math.floor((difference / 1000 / 60) % 60);
-    const seconds = Math.floor((difference / 1000) % 60);
-    
-    if (hours >= 24) {
-      const days = Math.floor(hours / 24);
-      return `${days}d ${hours % 24}h remaining`;
-    }
-    
-    return `${hours}h ${minutes}m ${seconds}s remaining`;
-  };
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  // Keep ref in sync if food prop changes
+  useEffect(() => {
+    expiryRef.current = food.expiryTime;
+  }, [food.expiryTime]);
 
   useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(expiryRef.current) - new Date();
+      if (difference <= 0) return 'Expired';
+      
+      const hours = Math.floor((difference / (1000 * 60 * 60)));
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        return `${days}d ${hours % 24}h remaining`;
+      }
+      
+      return `${hours}h ${minutes}m ${seconds}s remaining`;
+    };
+
+    setTimeLeft(calculateTimeLeft());
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);

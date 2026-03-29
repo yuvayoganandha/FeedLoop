@@ -22,7 +22,14 @@ import {
   Download,
   User as UserIcon
 } from 'lucide-react';
-import { API_ENDPOINTS } from '../config';
+import { API_ENDPOINTS, API_BASE_URL } from '../config';
+
+// Resolve relative upload paths to absolute backend URLs (prevents ORB on cross-origin images)
+const getImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) return `${API_BASE_URL}${url}`;
+  return url;
+};
 import { formatDistanceToNow } from 'date-fns';
 
 const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
@@ -189,7 +196,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-5 overflow-hidden">
                                         <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
-                                            {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
+                                            {food.image ? <img src={getImageUrl(food.image)} className="w-full h-full object-cover" alt={food.name} /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                         </div>
                                         <div className="overflow-hidden">
                                             <div className="flex items-center space-x-3 mb-1 overflow-hidden">
@@ -237,7 +244,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-5 overflow-hidden">
                                       <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
-                                          {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
+                                          {food.image ? <img src={getImageUrl(food.image)} className="w-full h-full object-cover" alt={food.name} /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                       </div>
                                       <div className="overflow-hidden">
                                           <div className="flex items-center space-x-3 mb-1 overflow-hidden">

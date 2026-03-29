@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Food = require('../models/Food');
-const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
+const authReq = require('../middleware/auth');
 
 // Configure Multer
 const storage = multer.diskStorage({
@@ -15,19 +16,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-
-// Middleware to authenticate
-const authReq = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'No token' });
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-        req.user = decoded;
-        next();
-    } catch(err) {
-        res.status(401).json({ message: 'Invalid token' });
-    }
-}
 
 // POST /api/food
 router.post('/', authReq, upload.single('image'), async (req, res) => {
@@ -142,7 +130,7 @@ router.post('/:id/rate', authReq, async (req, res) => {
         await food.save();
         
         // Update donor rating
-        const donor = await require('../models/User').findById(food.donor._id);
+        const donor = await User.findById(food.donor._id);
         if(donor) {
             const currentTotalRatings = donor.totalRatings || 0;
             const currentAvgRating = donor.rating || 0;
