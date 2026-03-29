@@ -21,7 +21,7 @@ const MapUpdater = ({ center }) => {
   const map = useMap();
   useEffect(() => {
     if (center) {
-      map.setView(center, map.getZoom(), { animate: true });
+      map.flyTo(center, 13, { animate: true, duration: 2 });
     }
   }, [center, map]);
   return null;
