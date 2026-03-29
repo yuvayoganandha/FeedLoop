@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { X, MapPin, CheckCircle, Box, CheckCircle2, LocateFixed, MonitorPlay } from 'lucide-react';
 
-const DonateModal = ({ isOpen, onClose, userLocation, onSuccess }) => {
+const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     quantity: '',
     description: '',
+    phone: user?.phone || '',
     expiryDate: '',
     expiryTime: '',
     address: 'Near current location',
@@ -64,6 +65,7 @@ const DonateModal = ({ isOpen, onClose, userLocation, onSuccess }) => {
         const payload = {
             name: formData.name,
             quantity: formData.quantity,
+            phone: formData.phone,
             expiryTime: combinedExpiry,
             image: formData.image,
             address: resolvedAddress || formData.address,
@@ -73,7 +75,7 @@ const DonateModal = ({ isOpen, onClose, userLocation, onSuccess }) => {
             }
         };
 
-        const res = await fetch('http://localhost:5000/api/food', {
+        const res = await fetch('http://127.0.0.1:5000/api/food', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -148,12 +150,19 @@ const DonateModal = ({ isOpen, onClose, userLocation, onSuccess }) => {
                          </div>
                      </div>
                      <div className="space-y-3">
-                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Expiry Time *</label>
-                         <div className="flex space-x-3">
-                            <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleChange} className="input-dark text-[10px] px-2 text-center" />
-                            <input type="time" name="expiryTime" value={formData.expiryTime} onChange={handleChange} className="input-dark text-[10px] px-2 text-center" />
-                          </div>
+                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Contact Number *</label>
+                         <div className="relative group">
+                            <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" className="input-dark text-sm font-black" />
+                         </div>
                      </div>
+                 </div>
+
+                 <div className="space-y-3">
+                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Expiry Time *</label>
+                     <div className="flex space-x-3">
+                        <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleChange} className="input-dark text-[10px] px-2 text-center flex-1" />
+                        <input type="time" name="expiryTime" value={formData.expiryTime} onChange={handleChange} className="input-dark text-[10px] px-2 text-center flex-1" />
+                      </div>
                  </div>
 
                  <div className="space-y-3">

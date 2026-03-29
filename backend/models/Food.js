@@ -34,7 +34,7 @@ const foodSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['available', 'claimed'],
+    enum: ['available', 'claimed', 'completed', 'expired'],
     default: 'available'
   },
   donor: {
@@ -46,6 +46,10 @@ const foodSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
+  },
+  phone: {
+    type: String,
+    required: true
   },
   rating: {
     type: Number,

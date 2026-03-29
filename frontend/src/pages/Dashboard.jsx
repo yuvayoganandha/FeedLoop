@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, LayoutGrid, Navigation, Power, ArrowRight as ArrowRightRight, Plus, User as UserIcon } from 'lucide-react';
+import { Search, MapPin, LayoutGrid, Navigation, Power, ArrowRight as ArrowRightRight, Plus, User as UserIcon, PhoneCall } from 'lucide-react';
 import FoodCard from '../components/FoodCard';
 import MapComponent from '../components/MapComponent';
 import DonateModal from '../components/DonateModal';
@@ -22,7 +22,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [locationName, setLocationName] = useState(user.homeLocation?.address || 'Chennai');
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io('http://127.0.0.1:5000');
     setSocket(newSocket);
 
     newSocket.on('newFood', (food) => {
@@ -42,7 +42,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
               lat: liveLocation.lat,
               lng: liveLocation.lng
           });
-          const res = await fetch(`http://localhost:5000/api/food?${params}`);
+          const res = await fetch(`http://127.0.0.1:5000/api/food?${params}`);
           const data = await res.json();
           setFoods(data);
       } catch(err) {
@@ -244,6 +244,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
               isOpen={isDonateModalOpen} 
               onClose={() => setIsDonateModalOpen(false)} 
               userLocation={liveLocation}
+              user={user}
               onSuccess={fetchFoods}
           />
       )}

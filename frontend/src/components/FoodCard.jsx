@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, User, Star, Utensils, Box, Archive, Timer, LocateFixed, UserCheck, Trophy, PackageSearch } from 'lucide-react';
+import { Clock, MapPin, User, Star, Utensils, Box, Archive, Timer, LocateFixed, UserCheck, Trophy, PackageSearch, PhoneCall, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import RatingModal from './RatingModal';
 
@@ -15,7 +15,7 @@ const FoodCard = ({ food, user }) => {
       setError('');
       setClaiming(true);
       try {
-          const res = await fetch(`http://localhost:5000/api/food/${food._id}/claim`, {
+          const res = await fetch(`http://127.0.0.1:5000/api/food/${food._id}/claim`, {
               method: 'POST',
               headers: { 
                   'Content-Type': 'application/json',
@@ -84,9 +84,37 @@ const FoodCard = ({ food, user }) => {
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-white/5 p-4 rounded-3xl border border-white/5 italic">
                   "{food.description || 'No additional details provided.'}"
               </p>
+              <div className="flex flex-col space-y-3">
+                  <div className="flex bg-primary/10 p-5 rounded-[2rem] border border-primary/20 items-center justify-between group/contact transition-all shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                      <div className="flex items-center space-x-4">
+                          <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                              <PhoneCall className="h-6 w-6 text-slate-950" />
+                          </div>
+                          <div>
+                              <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Donor Mobile Number</p>
+                              <p className="text-xl font-black text-white tracking-tighter leading-none select-all">{food.phone || (food.donor && food.donor.phone) || 'Contact Donor'}</p>
+                          </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                          <button 
+                              onClick={() => {
+                                  navigator.clipboard.writeText(food.phone || (food.donor && food.donor.phone) || '');
+                                  alert('Phone number copied!');
+                              }}
+                              className="p-3 bg-white/5 text-slate-400 hover:text-primary rounded-xl border border-white/5 hover:border-primary/30 transition-all active:scale-90"
+                              title="Copy Number"
+                          >
+                              <Archive className="h-4 w-4" />
+                          </button>
+                          <a href={`tel:${food.phone || (food.donor && food.donor.phone) || ''}`} className="p-3 bg-primary text-slate-950 rounded-xl hover:bg-white hover:scale-110 active:scale-90 transition-all shadow-lg">
+                              <PhoneCall className="h-4 w-4" />
+                          </a>
+                      </div>
+                  </div>
+              </div>
               <div className="flex items-start space-x-3 text-slate-500 text-[10px] font-black leading-tight uppercase tracking-widest px-1">
                  <LocateFixed className="h-4 w-4 shrink-0 text-primary/30" />
-                 <span className="line-clamp-1">{food.location.address || 'Location Hidden'}</span>
+                 <span className="line-clamp-1">{food.location?.address || 'Location Hidden'}</span>
               </div>
           </div>
 

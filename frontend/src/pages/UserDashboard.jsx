@@ -13,7 +13,8 @@ import {
   User as UserIcon,
   ChevronRight,
   TrendingUp,
-  History
+  History,
+  PhoneCall
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -21,23 +22,75 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
   const [activity, setActivity] = useState({ donations: [], claims: [] });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('donations'); // 'donations' or 'claims'
+  const [editingFood, setEditingFood] = useState(null);
+  const [updating, setUpdating] = useState(false);
+
+  const fetchActivity = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/user/activity', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setActivity(data);
+    } catch (err) {
+      console.error("Activity fetch err", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchActivity = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/api/user/activity', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await res.json();
-        setActivity(data);
-      } catch (err) {
-        console.error("Activity fetch err", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchActivity();
   }, []);
+
+  const handleConfirmCollection = async (foodId) => {
+    if (!window.confirm("Confirm that the food has been successfully collected? This will remove the posting from the map.")) return;
+    
+    setUpdating(true);
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/food/${foodId}/complete`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        alert("Rescue mission completed successfully!");
+        fetchActivity();
+      }
+    } catch (err) {
+      console.error("Complete rescue err", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setUpdating(true);
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/food/${editingFood._id}`, {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({
+            name: editingFood.name,
+            quantity: editingFood.quantity,
+            description: editingFood.description,
+            expiryTime: editingFood.expiryTime,
+            phone: editingFood.phone
+        })
+      });
+      if (res.ok) {
+        setEditingFood(null);
+        fetchActivity();
+      }
+    } catch (err) {
+      console.error("Update food err", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const stats = [
     { label: 'Total Rescues', value: activity.claims.length, icon: Target, color: 'text-primary' },
@@ -56,7 +109,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto bg-bg-dark animate-fade-in-up custom-scrollbar">
+    <div className="flex-1 overflow-y-auto bg-bg-dark animate-fade-in-up custom-scrollbar relative">
       {/* Profile Header */}
       <section className="relative px-8 pt-12 pb-16 overflow-hidden">
          <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/5 via-bg-dark/20 to-bg-dark" />
@@ -160,16 +213,34 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-700 italic">{item.location?.address?.split(',')[0]} Sector</p>
                                    </div>
                                 </div>
-                                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-white/10 ${item.status === 'available' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-800 text-slate-500'}`}>
+                                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-white/10 ${item.status === 'available' ? 'bg-primary/10 text-primary border-primary/20' : (item.status === 'claimed' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20')}`}>
                                    {item.status}
                                 </div>
                              </div>
+                             
+                             {item.status === 'claimed' && (
+                                 <button 
+                                    onClick={() => handleConfirmCollection(item._id)}
+                                    disabled={updating}
+                                    className="w-full mb-6 py-4 bg-emerald-500 text-slate-950 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] transition-all"
+                                 >
+                                    Confirm Collection & Clear
+                                 </button>
+                             )}
+
                              <div className="flex items-center justify-between pt-6 border-t border-white/5">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center">
                                    <Clock className="w-3 h-3 mr-2 text-primary" />
                                    Broadcast {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                                 </span>
-                                <button className="text-[9px] font-black text-primary uppercase tracking-[0.3em] hover:brightness-125">Edit Posting</button>
+                                {item.status === 'available' && (
+                                    <button 
+                                        onClick={() => setEditingFood(item)}
+                                        className="text-[9px] font-black text-primary uppercase tracking-[0.3em] hover:brightness-125 transition-all"
+                                    >
+                                        Edit Posting
+                                    </button>
+                                )}
                              </div>
                          </div>
                       )) : (
@@ -187,7 +258,9 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                                <div className="space-y-2">
                                   <h4 className="text-2xl font-black text-white tracking-tighter group-hover:text-emerald-400 transition-colors">{item.name}</h4>
                                   <div className="flex items-center space-x-3">
-                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">Rescue Successful</p>
+                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                                        {item.status === 'completed' ? 'Rescue Successful' : 'Claimed'}
+                                     </p>
                                   </div>
                                </div>
                                <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
@@ -221,6 +294,81 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
              </div>
           </div>
       </section>
+
+      {/* Edit Modal Overlay */}
+      {editingFood && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-3xl bg-slate-950/60 transition-all duration-500 animate-fade-in">
+              <div className="glass w-full max-w-2xl rounded-[3rem] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.8)] overflow-hidden animate-scale-in">
+                  <form onSubmit={handleEditSubmit} className="p-10 space-y-8">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                        <h3 className="text-3xl font-black text-white tracking-tighter">Edit Posting</h3>
+                        <button type="button" onClick={() => setEditingFood(null)} className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hover:text-white transition-colors">Cancel</button>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Food Name</label>
+                            <input 
+                                type="text"
+                                className="input-dark bg-white/5 !py-4"
+                                value={editingFood.name}
+                                onChange={e => setEditingFood({...editingFood, name: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Quantity</label>
+                                <input 
+                                    type="text"
+                                    className="input-dark bg-white/5 !py-4"
+                                    value={editingFood.quantity}
+                                    onChange={e => setEditingFood({...editingFood, quantity: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Expiry</label>
+                                <input 
+                                    type="datetime-local"
+                                    className="input-dark bg-white/5 !py-4"
+                                    value={new Date(editingFood.expiryTime).toISOString().slice(0,16)}
+                                    onChange={e => setEditingFood({...editingFood, expiryTime: e.target.value})}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Contact Phone Number</label>
+                            <input 
+                                type="text"
+                                className="input-dark bg-white/5 !py-4"
+                                value={editingFood.phone || ''}
+                                onChange={e => setEditingFood({...editingFood, phone: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Description</label>
+                            <textarea 
+                                className="input-dark bg-white/5 !py-4 min-h-[100px]"
+                                value={editingFood.description}
+                                onChange={e => setEditingFood({...editingFood, description: e.target.value})}
+                            />
+                        </div>
+                      </div>
+
+                      <button 
+                        type="submit"
+                        disabled={updating}
+                        className="w-full btn-primary !py-5 !text-[12px] !rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+                      >
+                        {updating ? 'Updating Mission...' : 'Save Changes'}
+                      </button>
+                  </form>
+              </div>
+          </div>
+      )}
     </div>
   );
 };

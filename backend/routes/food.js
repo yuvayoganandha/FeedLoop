@@ -19,12 +19,13 @@ const authReq = (req, res, next) => {
 // POST /api/food
 router.post('/', authReq, async (req, res) => {
   try {
-    const { name, quantity, location, expiryTime, image, address, description } = req.body;
+    const { name, quantity, location, expiryTime, image, address, description, phone } = req.body;
     
     const newFood = new Food({
       name,
       quantity,
       description,
+      phone,
       location: {
          type: 'Point',
          coordinates: [location.lng, location.lat],
@@ -63,11 +64,11 @@ router.get('/', async (req, res) => {
                      },
                      spherical: true
                  })
-                 .populate('donor', 'name rating');
+                 .populate('donor', 'name rating phone');
         } else {
             // No location provided, return all available
             foods = await Food.find({ status: 'available' }).sort({ createdAt: -1 })
-                 .populate('donor', 'name rating');
+                 .populate('donor', 'name rating phone');
         }
         res.status(200).json(foods);
     } catch(err) {
@@ -126,6 +127,54 @@ router.post('/:id/rate', authReq, async (req, res) => {
         
         res.status(200).json({ message: 'Rating submitted successfully' });
     } catch(err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// POST /api/food/:id/complete (Donor confirms collection)
+router.post('/:id/complete', authReq, async (req, res) => {
+    try {
+        const foodId = req.params.id;
+        const food = await Food.findById(foodId);
+        
+        if(!food) return res.status(404).json({ message: 'Food not found' });
+        if(food.donor.toString() !== req.user.id) return res.status(403).json({ message: 'Only the donor can confirm collection' });
+        
+        food.status = 'completed';
+        await food.save();
+        
+        req.app.get('io').emit('foodCompleted', food);
+        
+        res.status(200).json({ message: 'Rescue completed and item removed', food });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// PUT /api/food/:id (Edit posting)
+router.put('/:id', authReq, async (req, res) => {
+    try {
+        const { name, quantity, description, expiryTime, phone } = req.body;
+        const food = await Food.findById(req.params.id);
+        
+        if(!food) return res.status(404).json({ message: 'Food not found' });
+        if(food.donor.toString() !== req.user.id) return res.status(403).json({ message: 'Only the donor can edit' });
+        if(food.status !== 'available') return res.status(400).json({ message: 'Cannot edit an item that is already claimed or completed' });
+        
+        food.name = name || food.name;
+        food.quantity = quantity || food.quantity;
+        food.description = description || food.description;
+        food.expiryTime = expiryTime || food.expiryTime;
+        food.phone = phone || food.phone;
+        
+        await food.save();
+        
+        req.app.get('io').emit('foodUpdated', food);
+        
+        res.status(200).json({ message: 'Posting updated successfully', food });
+    } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
