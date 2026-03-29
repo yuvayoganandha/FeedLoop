@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Clock, Navigation, LocateFixed as MapPinUser, Trash2, PhoneCall } from 'lucide-react';
+import { Clock, Navigation, LocateFixed, Trash2, PhoneCall } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import RoutingControl from './RoutingControl';
 
@@ -17,20 +17,29 @@ const createEmojiIcon = (emoji, color = '#4285F4') => {
   });
 };
 
-const MapUpdater = ({ center }) => {
+const MapUpdater = ({ center, triggerRecenter }) => {
   const map = useMap();
   useEffect(() => {
-    if (center) {
-      map.flyTo(center, 13, { animate: true, duration: 2 });
+    if (center && triggerRecenter) {
+      map.flyTo(center, 13, { animate: true, duration: 1.5 });
     }
-  }, [center, map]);
+  }, [center, triggerRecenter, map]);
   return null;
 };
 
 const MapComponent = ({ foods, userLocation }) => {
   const [routeTarget, setRouteTarget] = useState(null);
+  const [shouldRecenter, setShouldRecenter] = useState(true);
   
   const center = userLocation ? [userLocation.lat, userLocation.lng] : [13.0827, 80.2707];
+
+  // Stop auto-recentering after the first successful fly-to
+  useEffect(() => {
+    if (userLocation && shouldRecenter) {
+      const timer = setTimeout(() => setShouldRecenter(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [userLocation, shouldRecenter]);
 
   return (
     <div className="h-full w-full rounded-[2rem] overflow-hidden border border-[#dadce0] shadow-sm z-0 relative bg-[#f1f3f4]">
@@ -39,7 +48,7 @@ const MapComponent = ({ foods, userLocation }) => {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
-        <MapUpdater center={center} />
+        <MapUpdater center={center} triggerRecenter={shouldRecenter} />
         
         {/* Navigation Layer */}
         {userLocation && routeTarget && (
@@ -115,16 +124,25 @@ const MapComponent = ({ foods, userLocation }) => {
                                 )}
                             </div>
                             
-                            <div className="flex items-start space-x-2 pt-3 mt-3 border-t border-[#f1f3f4]">
-                                    <MapPinUser className="h-3.5 w-3.5 text-[#5f6368] shrink-0 mt-0.5" />
+                             <div className="flex items-start space-x-2 pt-3 mt-3 border-t border-[#f1f3f4]">
+                                    <LocateFixed className="h-3.5 w-3.5 text-[#5f6368] shrink-0 mt-0.5" />
                                     <p className="text-[10px] text-[#5f6368] font-medium italic truncate tracking-tight text-left leading-normal">{food.location.address || 'Address Protected'}</p>
-                             </div>
+                              </div>
                         </div>
                     </Popup>
                  </Marker>
              );
         })}
       </MapContainer>
+
+      {/* Manual Recenter Button (Google Style) */}
+      <button 
+        onClick={() => setShouldRecenter(true)}
+        className="absolute bottom-10 right-10 z-[400] h-12 w-12 bg-white rounded-full shadow-lg border border-[#dadce0] flex items-center justify-center text-[#5f6368] hover:text-google-blue hover:shadow-xl active:scale-90 transition-all"
+        title="Recenter Map"
+      >
+        <LocateFixed className="h-6 w-6" />
+      </button>
 
       {/* Manual Route Clear Overlay (Material Superior) */}
       {routeTarget && (
