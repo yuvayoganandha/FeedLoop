@@ -81,109 +81,102 @@ const MockAuthModal = ({ onLogin }) => {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col justify-center items-center bg-bg-dark px-4 overflow-hidden h-screen w-screen">
-      {/* Dimmed Background Video */}
-      <video 
-        autoPlay 
-        muted 
-        loop 
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-10 brightness-50"
-      >
-        <source src="/intro.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/20 via-bg-dark/60 to-bg-dark" />
-
-      {/* Login Card */}
-      <div className="max-w-md w-full glass rounded-[3rem] p-12 border border-white/5 relative z-10 animate-fade-in-up backdrop-blur-2xl shadow-[0_0_80px_rgba(6,182,212,0.1)]">
-         <div className="text-center mb-12">
-            <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary via-cyan-400 to-emerald-400 tracking-tighter mb-4 py-2">FeedLoop</h1>
-            <p className="text-slate-400 font-bold tracking-[0.2em] uppercase text-[10px] opacity-80">Closing the circle on waste</p>
+    <div className="min-h-screen w-full bg-[#f8f9fa] flex flex-col justify-center items-center px-4 font-sans">
+      {/* Google-Style Sign-in Container */}
+      <div className="max-w-[450px] w-full bg-white rounded-lg border border-[#dadce0] p-10 shadow-sm animate-fade-in-up">
+         
+         <div className="text-center mb-10">
+            {/* Minimalist Logo */}
+            <h1 className="text-[32px] font-medium tracking-tight text-[#202124] mb-2">FeedLoop</h1>
+            <h2 className="text-2xl font-normal text-[#202124]">Sign in</h2>
+            <p className="text-base text-[#202124] mt-3">Continue to Food Rescue</p>
          </div>
 
          {error && (
-            <div className="mb-6 bg-red-500/10 text-red-400 text-xs p-4 rounded-2xl border border-red-500/20 flex items-center animate-shake font-bold text-center justify-center">
+            <div className="mb-6 bg-[#fce8e6] text-[#c5221f] text-sm p-4 rounded-md border border-[#f5c2c7] flex items-center animate-shake font-medium">
               <span>{error}</span>
             </div>
          )}
          
          {step === 1 ? (
-           <form onSubmit={handleSendOtp} className="space-y-8">
-             <div className="space-y-3">
-               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Secure Link Access</label>
+           <form onSubmit={handleSendOtp} className="space-y-6">
+             <div className="space-y-1">
                <div className="relative group">
-                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
-                   <Phone className="h-5 w-5 text-slate-600 shadow-primary/20" />
-                 </div>
                  <input
                    type="tel"
                    value={phone}
                    onChange={e => setPhone(e.target.value)}
-                   className="input-dark pl-14 font-black"
-                   placeholder="+91 98765 43210"
+                   className="w-full bg-white border border-[#dadce0] rounded-md px-4 py-3.5 text-[#202124] focus:ring-2 focus:ring-[#4285f4]/30 focus:border-[#4285f4] outline-none transition-all placeholder:text-[#70757a] text-base"
+                   placeholder="Phone number"
+                   autoFocus
                  />
                </div>
+               <p className="text-[12px] text-[#70757a] px-1 font-normal leading-relaxed mt-2">
+                 Not your computer? Use a private browser window to sign in. <span className="text-google-blue font-medium cursor-pointer">Learn more</span>
+               </p>
              </div>
-             <button
-               type="submit"
-               disabled={loading}
-               className="btn-primary w-full group overflow-hidden"
-             >
-               <span className="relative z-10 flex items-center font-black">
-                 {loading ? 'Processing...' : 'Generate Access'}
-                 <ChevronRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-               </span>
-               <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/10 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-             </button>
+             
+             <div className="flex justify-between items-center pt-8">
+                <button type="button" className="text-google-blue font-medium text-sm hover:text-blue-700">Create account</button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-google-blue hover:bg-blue-600 text-white font-medium py-2.5 px-6 rounded-md shadow-sm transition-all text-sm disabled:opacity-50"
+                >
+                  {loading ? 'Next...' : 'Next'}
+                </button>
+             </div>
            </form>
          ) : (
-           <form onSubmit={handleVerifyOtp} className="space-y-8">
+           <form onSubmit={handleVerifyOtp} className="space-y-6">
              {mockOtpStore && (
-                <div className="bg-primary/5 border border-primary/20 text-primary p-6 rounded-[2.5rem] text-center mb-8 glass shadow-inner relative overflow-hidden group">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-3 opacity-60">Verification Code</p>
-                    <p className="text-5xl font-mono font-black tracking-[0.4em] ml-3 text-white shadow-primary/50">{mockOtpStore}</p>
-                    <div className="absolute inset-0 bg-primary/5 blur-xl animate-pulse" />
+                <div className="bg-[#e8f0fe] border border-[#d2e3fc] text-[#1a73e8] p-5 rounded-lg text-center mb-8">
+                    <p className="text-[11px] font-bold uppercase tracking-wider mb-2 opacity-70">Verification Code</p>
+                    <p className="text-4xl font-mono font-medium tracking-[0.3em] text-[#202124]">{mockOtpStore}</p>
                 </div>
              )}
-             <div className="space-y-3">
-               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Identity Proof</label>
-               <div className="relative group">
-                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
-                   <Lock className="h-5 w-5 text-slate-600" />
-                 </div>
-                 <input
-                   type="text"
-                   maxLength={4}
-                   value={otp}
-                   onChange={e => setOtp(e.target.value)}
-                   className="input-dark pl-14 text-center text-3xl tracking-[0.8em] font-mono font-black"
-                   placeholder="----"
-                 />
-               </div>
+             <div className="space-y-1">
+               <input
+                 type="text"
+                 maxLength={4}
+                 value={otp}
+                 onChange={e => setOtp(e.target.value)}
+                 className="w-full bg-white border border-[#dadce0] rounded-md px-4 py-3.5 text-center text-3xl tracking-[0.6em] font-mono outline-none focus:ring-2 focus:ring-[#4285f4]/30 focus:border-[#4285f4] transition-all"
+                 placeholder="----"
+                 autoFocus
+               />
              </div>
-             <button
-               type="submit"
-               disabled={loading}
-               className="btn-primary w-full"
-             >
-               <span className="font-black">{loading ? 'Verifying...' : 'Authenticate'}</span>
-             </button>
-             <div className="flex justify-center pt-2">
-                 <button type="button" onClick={() => setStep(1)} className="text-[10px] text-slate-500 hover:text-primary transition-colors font-black uppercase tracking-[0.3em] border-b border-transparent hover:border-primary/30 pb-1">Revise Contact</button>
+             
+             <div className="flex justify-between items-center pt-8">
+                <button type="button" onClick={() => setStep(1)} className="text-google-blue font-medium text-sm hover:text-blue-700">Revise contact</button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-google-blue hover:bg-blue-600 text-white font-medium py-2.5 px-6 rounded-md shadow-sm transition-all text-sm disabled:opacity-50"
+                >
+                  {loading ? 'Verifying...' : 'Next'}
+                </button>
              </div>
            </form>
          )}
 
-         {/* Trust badge */}
-         <div className="mt-12 pt-8 border-t border-white/5 flex justify-center items-center space-x-6 opacity-30">
-            <ShieldCheck className="h-4 w-4" />
-            <Globe className="h-4 w-4" />
-            <Zap className="h-4 w-4 text-primary" />
+         {/* Footer/Help */}
+         <div className="mt-12 flex items-center justify-between text-[#70757a] text-[12px]">
+            <div className="flex space-x-4">
+               <span>English (United States)</span>
+            </div>
+            <div className="flex space-x-6">
+               <span>Help</span>
+               <span>Privacy</span>
+               <span>Terms</span>
+            </div>
          </div>
       </div>
       
-      <div className="absolute bottom-12 text-slate-700 text-[10px] font-black tracking-[0.5em] uppercase opacity-40 animate-pulse">
-        Encrypted | P2P | Global Hub
+      {/* Decorative Branding */}
+      <div className="mt-8 text-[#70757a] text-[13px] font-normal flex items-center space-x-2">
+        <ShieldCheck className="h-4 w-4" />
+        <span>One platform for everyone.</span>
       </div>
     </div>
   );

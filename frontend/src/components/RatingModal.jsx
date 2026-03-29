@@ -37,16 +37,18 @@ const RatingModal = ({ isOpen, onClose, foodId, donorName, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center animate-fade-in p-4">
-       <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl relative animate-zoom-in">
-           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-50 rounded-full p-1"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center animate-fade-in p-4">
+       <div className="bg-white rounded-3xl p-10 w-full max-w-sm shadow-2xl relative animate-scale-in border border-[#dadce0]">
+           <button onClick={onClose} className="absolute top-6 right-6 text-[#5f6368] hover:text-[#202124] bg-[#f8f9fa] rounded-full p-2 border border-[#dadce0] transition-colors"><X className="h-5 w-5" /></button>
            
-           <h3 className="text-xl font-bold text-gray-800 mb-1">Rate {donorName || 'the Donor'}</h3>
-           <p className="text-sm text-gray-500 mb-6">How was the food quality and interaction?</p>
+           <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-[#202124] tracking-tight mb-2">Rate {donorName || 'the Donor'}</h3>
+              <p className="text-sm text-[#5f6368] font-medium leading-relaxed">Closing the mission circle with feedback</p>
+           </div>
            
-           {error && <p className="text-red-500 text-sm mb-4 font-semibold">{error}</p>}
+           {error && <p className="text-[#c5221f] text-xs mb-6 font-bold uppercase tracking-widest text-center bg-[#fce8e6] p-3 rounded-xl border border-[#f1b4af] animate-shake">{error}</p>}
            
-           <div className="flex justify-center space-x-2 mb-6">
+           <div className="flex justify-center space-x-3 mb-8">
               {[1, 2, 3, 4, 5].map((star) => (
                   <button 
                       key={star}
@@ -56,27 +58,27 @@ const RatingModal = ({ isOpen, onClose, foodId, donorName, onSuccess }) => {
                       onClick={() => setRating(star)}
                       className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
                   >
-                      <Star className={`h-10 w-10 ${star <= (hover || rating) ? 'text-orange-400 fill-current drop-shadow-sm' : 'text-gray-200'}`} />
+                      <Star className={`h-10 w-10 ${star <= (hover || rating) ? 'text-google-yellow fill-current drop-shadow-sm' : 'text-[#f1f3f4]'}`} />
                   </button>
               ))}
            </div>
            
-           <div className="mb-6">
+           <div className="mb-8">
                <textarea 
                    rows="3" 
                    value={review}
                    onChange={e => setReview(e.target.value)}
-                   placeholder="Say something nice... (optional)"
-                   className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-gray-800 font-medium"
+                   placeholder="Say something nice about the rescue..."
+                   className="input-dark !rounded-2xl"
                />
            </div>
 
            <button 
                onClick={handleSubmit} 
                disabled={loading || rating === 0}
-               className="w-full bg-gradient-to-r from-primary to-orange-500 text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-orange-500/30 transition-all disabled:opacity-50"
+               className="w-full bg-google-blue hover:bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-blue-500/20 transition-all text-xs tracking-widest disabled:opacity-50"
            >
-               {loading ? 'Submitting...' : 'Submit Rating'}
+               {loading ? 'SUBMITTING...' : 'INITIALIZE FEEDBACK'}
            </button>
        </div>
     </div>

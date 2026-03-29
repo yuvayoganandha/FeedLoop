@@ -1,44 +1,51 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #06b6d4; /* Neon Cyan */
-  --color-primary-dark: #0891b2;
-  --color-accent: #10b981; /* Neon Green */
-  --color-bg-dark: #020617; /* Very Deep Indigo/Slate */
-  --color-bg-card: #0f172a; /* Slate Dark */
-  --color-border-dark: #1e293b;
+  --color-google-blue: #4285F4;
+  --color-google-red: #EA4335;
+  --color-google-yellow: #FBBC05;
+  --color-google-green: #34A853;
+  --color-primary: var(--color-google-blue);
+  --color-accent: var(--color-google-green);
+  --color-bg-light: #F8F9FA;
+  --color-bg-card: #FFFFFF;
+  --color-border-light: #DADCE0;
 }
 
 @layer base {
   body {
-    @apply bg-bg-dark text-slate-100 antialiased selection:bg-primary/30;
+    @apply bg-bg-light text-slate-800 antialiased selection:bg-blue-100;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-bg-card/40 backdrop-blur-3xl border border-white/5 shadow-2xl;
+    @apply bg-white border border-border-light shadow-md rounded-[1.5rem];
   }
   
   .glass-card {
-    @apply bg-bg-card/60 backdrop-blur-xl border border-border-dark shadow-2xl hover:border-primary/40 transition-all duration-500 ease-out;
+    @apply bg-white border border-border-light shadow-sm hover:shadow-md transition-all duration-300 ease-in-out rounded-[1.5rem];
   }
 
   .btn-primary {
-    @apply bg-gradient-to-br from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-slate-950 font-black py-4 px-8 rounded-[2rem] shadow-2xl shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all duration-300 flex items-center justify-center uppercase tracking-widest text-sm border border-white/10;
+    @apply bg-google-blue hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center tracking-normal text-sm border-none;
+  }
+
+  .btn-google-red {
+     @apply bg-google-red hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 border-none;
   }
 
   .input-dark {
-    @apply w-full bg-slate-900/50 border border-white/5 rounded-[1.5rem] px-5 py-4 text-white focus:ring-2 focus:ring-primary focus:bg-slate-800/80 focus:border-transparent outline-none transition-all duration-300 placeholder:text-slate-600 font-medium;
+    @apply w-full bg-white border border-border-light rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-200 placeholder:text-slate-400 font-medium;
   }
 }
 
-/* Leaflet dark mode overrides */
+/* Leaflet clean light mode */
 .leaflet-container {
   width: 100%;
   height: 100%;
   z-index: 10;
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  background: #f1f3f4;
 }
 
 .custom-emoji-icon {
@@ -47,7 +54,7 @@
 
 /* Animations */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -57,26 +64,26 @@
 }
 
 @keyframes scale-in {
-  from { opacity: 0.9; transform: scale(0.95); }
+  from { opacity: 0.95; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .animate-fade-in {
-  animation: fade-in 1s ease-out forwards;
+  animation: fade-in 0.6s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .animate-shake {
@@ -84,7 +91,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -92,17 +99,17 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-all;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-all;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-bg-dark;
+  @apply bg-bg-light;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/5 rounded-full hover:bg-white/10 transition-all;
+  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-all;
 }

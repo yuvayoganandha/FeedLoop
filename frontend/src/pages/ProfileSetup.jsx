@@ -35,47 +35,41 @@ const ProfileSetup = ({ user, onComplete }) => {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col justify-center items-center bg-bg-dark px-4 overflow-hidden h-screen w-screen">
-       {/* Background Video (Silent/Dimmed) */}
-       <video 
-        autoPlay 
-        muted 
-        loop 
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-20 brightness-50"
-      >
-        <source src="/intro.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/20 via-bg-dark/60 to-bg-dark" />
+    <div className="min-h-screen w-full bg-[#f8f9fa] flex flex-col justify-center items-center px-4 font-sans relative overflow-hidden">
+      
+      {/* Decorative Branding Elements (Superior Material) */}
+      <div className="absolute top-20 left-20 h-40 w-40 bg-google-blue/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-20 h-60 w-60 bg-google-green/5 rounded-full blur-3xl" />
 
-      <div className="max-w-md w-full glass rounded-[3rem] p-12 border border-white/5 relative z-10 animate-fade-in-up backdrop-blur-3xl shadow-[0_0_80px_rgba(6,182,212,0.1)]">
+      {/* Profile Card (Google Minimalist) */}
+      <div className="max-w-[450px] w-full bg-white rounded-2xl border border-[#dadce0] p-12 shadow-sm animate-fade-in-up relative z-10">
          <div className="text-center mb-10">
-            <div className="h-20 w-20 bg-primary/10 rounded-[2.5rem] border border-primary/20 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
-               <User className="h-10 w-10 text-primary" />
+            <div className="h-20 w-20 bg-[#e8f0fe] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#4285f4]/10">
+               <User className="h-10 w-10 text-google-blue" />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter mb-3">Identity Required</h1>
-            <p className="text-slate-500 font-bold tracking-[0.1em] uppercase text-[10px]">Establish your operator presence</p>
+            <h1 className="text-2xl font-bold text-[#202124] tracking-tight mb-2">Create your alias</h1>
+            <p className="text-sm text-[#5f6368] font-medium leading-relaxed">Establish your operator presence across the hub</p>
          </div>
 
          {error && (
-            <div className="mb-6 bg-red-500/10 text-red-400 text-xs p-4 rounded-2xl border border-red-500/20 text-center font-bold animate-shake">
+            <div className="mb-6 bg-[#fce8e6] text-[#c5221f] text-xs p-4 rounded-xl border border-[#f1b4af] text-center font-bold animate-shake">
               {error}
             </div>
          )}
 
-         <form onSubmit={handleSubmit} className="space-y-8">
+         <form onSubmit={handleSubmit} className="space-y-10">
             <div className="space-y-3">
-               <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Operator Alias</label>
+               <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-2">Display Name</label>
                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
-                    <Zap className="h-4 w-4 text-slate-600" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-google-blue">
+                    <Zap className="h-4 w-4 text-[#dadce0]" />
                   </div>
                   <input
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="input-dark pl-12"
-                    placeholder="Enter mission name..."
+                    className="input-dark pl-11 !rounded-xl text-base"
+                    placeholder="Enter mission alias..."
                     autoFocus
                   />
                </div>
@@ -84,24 +78,23 @@ const ProfileSetup = ({ user, onComplete }) => {
             <button
                type="submit"
                disabled={loading}
-               className="btn-primary w-full group overflow-hidden"
+               className="w-full bg-google-blue hover:bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all text-xs tracking-widest disabled:opacity-50"
             >
-               <span className="relative z-10 flex items-center font-black">
-                  {loading ? 'Sychronizing...' : 'Initialize Mission'}
-                  <ChevronRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+               <span className="flex items-center justify-center">
+                  {loading ? 'SYNCHRONIZING...' : 'INITIALIZE MISSION'}
+                  <ChevronRight className="h-4 w-4 ml-2" />
                </span>
-               <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/10 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>
          </form>
 
-         <div className="mt-12 pt-8 border-t border-white/5 flex justify-center items-center space-x-6 opacity-30">
-            <ShieldCheck className="h-4 w-4" />
-            <Globe className="h-4 w-4" />
+         <div className="mt-12 pt-8 border-t border-[#f1f3f4] flex justify-center items-center space-x-6 opacity-20">
+            <ShieldCheck className="h-4 w-4 text-[#5f6368]" />
+            <Globe className="h-4 w-4 text-[#5f6368]" />
          </div>
       </div>
       
-      <div className="absolute bottom-12 text-slate-700 text-[10px] font-black tracking-[0.5em] uppercase opacity-40 animate-pulse">
-        Secure | Decentralized | Neutral
+      <div className="absolute bottom-12 text-[#70757a] text-[11px] font-bold tracking-[0.4em] uppercase opacity-40 animate-pulse">
+        Secure | Decentralized | Hub
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, CheckCircle, Box, CheckCircle2, LocateFixed, MonitorPlay } from 'lucide-react';
+import { X, MapPin, Clock, Info, Package, Camera, Calendar, AlertCircle, ShoppingBag, PhoneCall, History, User, Heart, ChevronRight, CheckCircle, Box, CheckCircle2, LocateFixed, MonitorPlay } from 'lucide-react';
 import { API_ENDPOINTS } from '../config';
 
 const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
@@ -8,11 +8,10 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
     quantity: '',
     description: '',
     phone: user?.phone || '',
-    expiryDate: '',
     expiryTime: '',
-    address: 'Near current location',
     image: ''
   });
+
   const [loading, setLoading] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [resolvedAddress, setResolvedAddress] = useState('');
@@ -21,183 +20,196 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
 
   if (!isOpen) return null;
 
-  const handleChange = (e) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-      if (e.target.name === 'address') {
-        setResolvedAddress(''); // Clear previous resolution if address changes
-      }
-  };
-
-  const handleSubmit = async (e) => {
+  const handlePost = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.quantity || !formData.expiryDate || !formData.expiryTime) {
-        return setError('Please fill all required fields');
+    if (!formData.name || !formData.quantity || !formData.expiryTime) {
+      return setError('Please fill all required fields');
     }
-    setError('');
+
     setLoading(true);
+    setError('');
+
+    // Try to get address from coords
+    let finalAddress = 'Near your location';
+    try {
+        setGeocoding(true);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`);
+        const data = await res.json();
+        finalAddress = data.display_name;
+    } catch(err) {
+        console.error('Geocoding failed');
+    } finally {
+        setGeocoding(false);
+    }
+
+    const submissionData = {
+        ...formData,
+        location: {
+            type: 'Point',
+            coordinates: [userLocation.lng, userLocation.lat],
+            address: finalAddress
+        }
+    };
 
     try {
-        let lat = userLocation.lat;
-        let lng = userLocation.lng;
-
-        // Geocoding step
-        if (formData.address && formData.address !== 'Near current location') {
-            setGeocoding(true);
-            try {
-                const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
-                const geoData = await geoRes.json();
-                if (geoData && geoData.length > 0) {
-                    lat = parseFloat(geoData[0].lat);
-                    lng = parseFloat(geoData[0].lon);
-                    setResolvedAddress(geoData[0].display_name);
-                } else {
-                    throw new Error('Address not found. Using current location.');
-                }
-            } catch (geoErr) {
-                console.warn(geoErr);
-            } finally {
-                setGeocoding(false);
-            }
-        }
-
-        // Combine Date and Time
-        const combinedExpiry = new Date(`${formData.expiryDate}T${formData.expiryTime}`).toISOString();
-
-        const payload = {
-            name: formData.name,
-            quantity: formData.quantity,
-            phone: formData.phone,
-            expiryTime: combinedExpiry,
-            image: formData.image,
-            address: resolvedAddress || formData.address,
-            location: {
-                lat,
-                lng
-            }
-        };
-
         const res = await fetch(API_ENDPOINTS.FOOD, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(submissionData)
         });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Failed to donate');
-
-        setSuccess(true);
-        setTimeout(() => {
-            onSuccess();
-            onClose();
-        }, 1500);
-
-    } catch(err) {
-        setError(err.message);
+        if (res.ok) {
+            setSuccess(true);
+            setTimeout(() => {
+                setSuccess(false);
+                onSuccess();
+            }, 2000);
+        } else {
+            const data = await res.json();
+            setError(data.message || 'Error posting food');
+        }
+    } catch (err) {
+        setError('Connection failed');
     } finally {
         setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="bg-white rounded-[2.5rem] p-12 w-full max-w-sm shadow-2xl animate-scale-in text-center flex flex-col items-center">
+            <div className="h-24 w-24 bg-[#e6f4ea] rounded-full flex items-center justify-center text-google-green mb-8 shadow-sm">
+                <CheckCircle2 className="h-12 w-12" />
+            </div>
+            <h3 className="text-3xl font-bold text-[#202124] tracking-tight mb-3">Transmission Live</h3>
+            <p className="text-[#5f6368] font-medium leading-relaxed uppercase tracking-[0.2em] text-[10px]">Your surplus is now visible to nearby rescuers</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 bg-bg-dark/60 backdrop-blur-xl flex justify-center items-end sm:items-center z-50 animate-fade-in px-4">
-      <div className="bg-bg-card w-full max-w-lg rounded-[3.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden border border-white/5 animate-fade-in-up relative">
-         <div className="px-10 py-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-             <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Donate Food</h2>
-                <div className="flex items-center space-x-2 mt-2">
-                   <div className="h-1 w-6 bg-primary rounded-full shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
-                   <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em]">Enter Food Details</p>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl relative my-auto animate-fade-in-up overflow-hidden">
+        {/* Header (Superior Material Design) */}
+        <div className="px-10 py-8 border-b border-[#f1f3f4] flex items-center justify-between sticky top-0 bg-white z-10">
+          <div>
+            <h2 className="text-2xl font-bold text-[#202124] tracking-tight">Post Surplus Food</h2>
+            <p className="text-[11px] font-bold text-google-blue uppercase tracking-widest mt-1">Initiating redistribution protocol</p>
+          </div>
+          <button onClick={onClose} className="h-10 w-10 bg-[#f8f9fa] hover:bg-[#f1f3f4] text-[#5f6368] rounded-full flex items-center justify-center transition-all border border-[#dadce0] shadow-sm">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handlePost} className="p-10 space-y-8 custom-scrollbar max-h-[70vh] overflow-y-auto">
+          {error && (
+            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-xl border border-[#f1b4af] text-center text-xs font-bold animate-shake">
+                {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Asset Name</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#5f6368] group-focus-within:text-google-blue transition-colors">
+                    <Box className="h-4 w-4" />
                 </div>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="input-dark pl-11 !rounded-xl"
+                  placeholder="e.g. Samosas, Lunch Packs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Quantity/Volume</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#5f6368] group-focus-within:text-google-blue transition-colors">
+                    <History className="h-4 w-4" />
+                </div>
+                <input
+                  type="text"
+                  value={formData.quantity}
+                  onChange={e => setFormData({ ...formData, quantity: e.target.value })}
+                  className="input-dark pl-11 !rounded-xl"
+                  placeholder="e.g. 5 kg, 20 packets"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Mission Logistics (Expiry)</label>
+            <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#5f6368] group-focus-within:text-google-blue transition-colors">
+                    <Clock className="h-4 w-4" />
+                </div>
+                <input
+                  type="datetime-local"
+                  value={formData.expiryTime}
+                  onChange={e => setFormData({ ...formData, expiryTime: e.target.value })}
+                  className="input-dark pl-11 !rounded-xl font-bold uppercase"
+                />
+            </div>
+            <p className="text-[10px] text-[#70757a] font-medium leading-relaxed ml-1 italic">Note: Food will be hidden after this time for safety.</p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Visual Log URL (Optional)</label>
+            <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#5f6368] group-focus-within:text-google-blue transition-colors">
+                    <MonitorPlay className="h-4 w-4" />
+                </div>
+                <input
+                  type="text"
+                  value={formData.image}
+                  onChange={e => setFormData({ ...formData, image: e.target.value })}
+                  className="input-dark pl-11 !rounded-xl"
+                  placeholder="Paste direct image URL..."
+                />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Mission Intelligence</label>
+            <textarea
+              rows="3"
+              value={formData.description}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              className="input-dark !rounded-2xl"
+              placeholder="Freshly prepared home cooked meals, please carry your own bags..."
+            />
+          </div>
+
+          <div className="bg-[#e8f0fe] p-6 rounded-2xl border border-[#4285f4]/20 flex items-start space-x-5 shadow-sm">
+             <div className="h-10 w-10 bg-[#4285f4] text-white rounded-lg flex items-center justify-center shrink-0 shadow-md">
+                <LocateFixed className="h-6 w-6" />
              </div>
-             <button onClick={onClose} className="p-4 text-slate-500 hover:text-white bg-white/5 rounded-2xl border border-white/5 transition-all hover:rotate-90">
-                 <X className="h-5 w-5" />
-             </button>
-         </div>
-
-         {success ? (
-             <div className="p-16 flex flex-col items-center justify-center text-center space-y-8 animate-fade-in">
-                 <div className="h-28 w-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center border border-primary/20 shadow-[0_0_40px_rgba(6,182,212,0.1)]">
-                    <CheckCircle className="h-14 w-14 text-primary animate-bounce" />
-                 </div>
-                 <div>
-                    <h3 className="text-4xl font-black text-white tracking-tight">Donation Successful</h3>
-                    <p className="text-slate-500 mt-3 font-medium uppercase tracking-[0.2em] text-[10px]">Your food has been listed</p>
-                 </div>
+             <div>
+                <p className="text-sm font-bold text-[#202124] tracking-tight mb-1">Current Sector Coordinates</p>
+                <p className="text-[11px] text-[#4285f4] font-black tracking-widest uppercase truncate">{userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)} (GPS Active)</p>
              </div>
-         ) : (
-             <form onSubmit={handleSubmit} className="p-10 space-y-8 max-h-[75vh] overflow-y-auto custom-scrollbar">
-                 {error && (
-                     <div className="bg-red-500/10 text-red-400 text-[10px] p-4 rounded-2xl border border-red-500/20 font-black uppercase tracking-widest animate-shake">{error}</div>
-                 )}
-                 <div className="space-y-3">
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Food Name *</label>
-                     <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="e.g. Biriyani, Bread, Fruits" className="input-dark text-lg font-black" />
-                 </div>
-
-                 <div className="space-y-3">
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Description</label>
-                     <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Detail ingredients or dietary warnings..." className="input-dark text-sm h-28 resize-none font-medium leading-relaxed" />
-                 </div>
-                 
-                 <div className="grid grid-cols-2 gap-6">
-                     <div className="space-y-3">
-                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Quantity *</label>
-                         <div className="relative group">
-                            <Box className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 group-focus-within:text-primary transition-colors" />
-                            <input type="text" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="e.g. 5 Servings" className="input-dark pl-12 text-sm font-black" />
-                         </div>
-                     </div>
-                     <div className="space-y-3">
-                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Contact Number *</label>
-                         <div className="relative group">
-                            <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" className="input-dark text-sm font-black" />
-                         </div>
-                     </div>
-                 </div>
-
-                 <div className="space-y-3">
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Expiry Time *</label>
-                     <div className="flex space-x-3">
-                        <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleChange} className="input-dark text-[10px] px-2 text-center flex-1" />
-                        <input type="time" name="expiryTime" value={formData.expiryTime} onChange={handleChange} className="input-dark text-[10px] px-2 text-center flex-1" />
-                      </div>
-                 </div>
-
-                 <div className="space-y-3">
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Pickup Location</label>
-                     <div className="relative group">
-                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
-                             <LocateFixed className="h-5 w-5 text-slate-600" />
-                         </div>
-                         <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter pickup address..." className="input-dark pl-14 font-black text-sm" />
-                     </div>
-                     {geocoding && <p className="text-[10px] text-primary animate-pulse font-black ml-2 uppercase tracking-widest">Searching location...</p>}
-                     {resolvedAddress && (
-                        <div className="bg-primary/5 p-4 rounded-3xl border border-primary/20 flex items-start space-x-3 animate-fade-in">
-                          <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase tracking-tight line-clamp-2">Resolved: {resolvedAddress}</p>
-                        </div>
-                     )}
-                 </div>
-
-                 <div className="space-y-3">
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2">Image URL</label>
-                     <div className="relative group">
-                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
-                             <MonitorPlay className="h-5 w-5 text-slate-600" />
-                         </div>
-                         <input type="url" name="image" value={formData.image} onChange={handleChange} placeholder="https://image-link.com" className="input-dark pl-14 text-sm" />
-                     </div>
-                 </div>
-
-                 <button type="submit" disabled={loading} className="btn-primary w-full py-5 text-lg shadow-[0_20px_40px_rgba(6,182,212,0.25)]">
-                     <span className="font-black text-slate-900 tracking-[0.3em]">Post Donation</span>
-                 </button>
-             </form>
-         )}
+          </div>
+          
+          <div className="pt-6">
+            <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-google-blue hover:bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all text-sm uppercase tracking-widest disabled:opacity-50"
+            >
+                {loading || geocoding ? 'Sychronizing Datastreams...' : 'Initialize Posting'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -8,11 +8,11 @@ function App() {
   const [user, setUser] = useState(null);
   const [isSplashing, setIsSplashing] = useState(true);
 
-  // Global Cinematic Intro Check
+  // Clean Material Intro Check
   useEffect(() => {
     const splashTimer = setTimeout(() => {
         setIsSplashing(false);
-    }, 4000); // 4 seconds of global intro
+    }, 2500); // Shorter, cleaner intro
     
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -42,20 +42,18 @@ function App() {
 
   if (isSplashing) {
       return (
-          <div className="h-screen w-screen bg-bg-dark flex items-center justify-center overflow-hidden">
-             <video 
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                className="absolute inset-x-0 top-0 w-full h-full object-cover animate-fade-in"
-              >
-                <source src="/intro.mp4" type="video/mp4" />
-              </video>
-              <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/10 via-bg-dark/30 to-bg-dark" />
+          <div className="h-screen w-screen bg-[#f8f9fa] flex flex-col items-center justify-center overflow-hidden font-sans">
               <div className="relative z-10 text-center animate-scale-in">
-                 <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary via-cyan-300 to-emerald-400 tracking-tighter mb-2 py-4">FeedLoop</h1>
-                 <p className="text-slate-400 font-bold tracking-[0.5em] uppercase text-[10px] animate-pulse">Initializing Protocol</p>
+                 <h1 className="text-[64px] font-medium text-[#202124] tracking-tight mb-2">FeedLoop</h1>
+                 <p className="text-[#5f6368] font-bold tracking-[0.6em] uppercase text-[10px] animate-pulse">Establishing Connection</p>
+              </div>
+              
+              {/* Subtle Material Accent */}
+              <div className="absolute bottom-20 flex space-x-2">
+                 <div className="h-2 w-2 rounded-full bg-[#4285f4] animate-bounce" style={{ animationDelay: '0s' }} />
+                 <div className="h-2 w-2 rounded-full bg-[#ea4335] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                 <div className="h-2 w-2 rounded-full bg-[#fbbc05] animate-bounce" style={{ animationDelay: '0.4s' }} />
+                 <div className="h-2 w-2 rounded-full bg-[#34a853] animate-bounce" style={{ animationDelay: '0.6s' }} />
               </div>
           </div>
       );
@@ -63,7 +61,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-bg-dark flex flex-col selection:bg-primary/20">
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col selection:bg-blue-100">
         {!user ? (
            <MockAuthModal onLogin={handleLogin} />
         ) : (
@@ -71,7 +69,7 @@ function App() {
               <ProfileSetup user={user} onComplete={handleProfileComplete} />
            ) : (
               <Dashboard 
-                user={user} 
+                user = {user}
                 onLogout={handleLogout} 
                 onProfileUpdate={handleProfileComplete} 
               />

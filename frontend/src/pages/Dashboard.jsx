@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, LayoutGrid, Navigation, Power, ArrowRight as ArrowRightRight, Plus, User as UserIcon, PhoneCall } from 'lucide-react';
+import { Search, MapPin, LayoutGrid, Navigation, Power, ArrowRight as ArrowRightRight, Plus, User as UserIcon, PhoneCall, History, Settings, HelpCircle, ShieldCheck } from 'lucide-react';
 import FoodCard from '../components/FoodCard';
 import MapComponent from '../components/MapComponent';
 import DonateModal from '../components/DonateModal';
@@ -52,202 +52,205 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   };
 
   useEffect(() => {
-      fetchFoods();
-      // eslint-disable-next-line
+    fetchFoods();
   }, [liveLocation]);
 
-  const filteredFoods = foods.filter(food => 
-      food.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleProfileComplete = (updatedUser) => {
-      onProfileUpdate(updatedUser);
-      setShowProfileSetup(false);
-  };
-
-  if (showProfileSetup) {
-      return <ProfileSetup user={user} onComplete={handleProfileComplete} />;
+  if (showProfileSetup || (!user.name && !showProfile)) {
+    return <ProfileSetup user={user} onComplete={(updatedUser) => {
+        onProfileUpdate(updatedUser);
+        setShowProfileSetup(false);
+    }} />;
   }
 
   if (showProfile) {
-    return (
-        <div className="flex flex-col h-screen bg-bg-dark text-slate-100 relative selection:bg-primary/30">
-            <UserDashboard 
-                user={user} 
-                onBack={() => setShowProfile(false)} 
-                onUpdateProfile={() => setShowProfileSetup(true)}
-            />
-        </div>
-    );
+    return <UserDashboard user={user} onBack={() => setShowProfile(false)} onUpdateProfile={onProfileUpdate} />;
   }
 
+  const filteredFoods = foods.filter(f => 
+    f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    f.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="flex flex-col h-screen bg-bg-dark text-slate-100 relative selection:bg-primary/30">
-      {/* Top Header Section */}
-      <header className="glass px-8 py-8 z-40 flex flex-col space-y-6 sticky top-0 border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4 group">
-               <div className="p-3 bg-primary/10 rounded-2xl group-hover:bg-primary/20 transition-all duration-500 shadow-[0_0_20px_rgba(6,182,212,0.1)] group-hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]">
-                  <MapPin className="h-6 w-6 text-primary animate-pulse" />
-               </div>
-               <div className="text-sm flex flex-col">
-                   <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] mb-1">Donation Zone</p>
-                   {isEditingLocation ? (
-                       <input 
-                           type="text"
-                           autoFocus
-                           className="text-white text-base border-b-2 border-primary bg-transparent outline-none w-56 py-1 font-black animate-pulse placeholder:text-slate-700"
-                           value={locationInput}
-                           onChange={e => setLocationInput(e.target.value)}
-                           onBlur={() => setIsEditingLocation(false)}
-                           placeholder="Enter City..."
-                           onKeyDown={async e => {
-                               if (e.key === 'Enter' && locationInput) {
-                                   try {
-                                       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`);
-                                       const data = await res.json();
-                                       if (data && data.length > 0) {
-                                           setLiveLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
-                                           setLocationName(data[0].display_name.split(',')[0]);
-                                       } else {
-                                           alert("Location not found!");
-                                       }
-                                   } catch (err) {
-                                       console.error(err);
-                                   }
-                                   setIsEditingLocation(false);
-                               }
-                           }}
-                       />
-                   ) : (
-                       <p 
-                           onClick={() => { setIsEditingLocation(true); setLocationInput(''); }}
-                           className="text-white text-lg font-black truncate w-56 cursor-pointer hover:text-primary transition-all duration-300 flex items-center group/text"
-                           title="Click to shift zone"
-                       >
-                           {locationName}
-                           <ArrowRightRight className="h-4 w-4 ml-3 opacity-0 group-hover/text:opacity-100 transition-all -translate-x-2 group-hover/text:translate-x-0" />
-                       </p>
-                   )}
-               </div>
-            </div>
-            
-            <div className="flex items-center space-x-6">
-              <div 
-                onClick={() => setShowProfile(true)}
-                className="hidden sm:flex items-center space-x-4 cursor-pointer group/prof hover:brightness-125 transition-all"
-              >
-                <div className="text-right">
-                    <p className="text-white font-black text-sm tracking-tight">{user.name || 'Explorer'}</p>
-                    <div className="flex items-center justify-end space-x-2 mt-1">
-                        <div className="h-1.5 w-1.5 bg-primary rounded-full animate-ping" />
-                        <p className="text-primary text-[9px] font-black uppercase tracking-widest">Profile Active</p>
-                    </div>
-                </div>
-                <div className="h-14 w-14 glass rounded-[1.25rem] flex items-center justify-center border-white/10 group-hover/prof:border-primary/50 group-hover/prof:shadow-[0_0_20px_rgba(6,182,212,0.25)] transition-all">
-                    <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-primary font-black shadow-inner border border-white/5 group-hover/prof:bg-primary/10 group-hover/prof:text-white transition-colors">
-                        {user.name?.charAt(0) || <UserIcon className="h-5 w-5" />}
-                    </div>
-                </div>
-              </div>
-
-              <div className="h-10 w-[1px] bg-white/5" />
-
-              <button onClick={onLogout} className="glass p-4 rounded-[1.25rem] text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all border-white/5 group">
-                  <Power className="h-5 w-5 group-hover:rotate-90 transition-transform duration-500" />
-              </button>
-            </div>
+    <div className="flex h-screen bg-[#f8f9fa] text-[#202124] overflow-hidden font-sans">
+      {/* Google-Style Sidebar Navigation */}
+      <aside className="w-72 bg-white border-r border-[#dadce0] flex flex-col pt-8 pb-4 shrink-0 shadow-sm z-30">
+        <div className="px-8 mb-10 flex items-center space-x-3">
+           <div className="h-10 w-10 bg-google-blue rounded-xl flex items-center justify-center shadow-sm">
+              <Plus className="h-6 w-6 text-white" />
+           </div>
+           <h1 className="text-2xl font-medium tracking-tight text-[#5f6368]">FeedLoop</h1>
         </div>
 
-        <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
-                <Search className="h-5 w-5 text-slate-600" />
-            </div>
-            <input
-                type="text"
-                placeholder="Search for available food..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="input-dark pl-14"
-            />
-            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <div className="bg-white/5 px-2 py-1 rounded text-[10px] font-mono text-slate-700 border border-white/5">⌘K</div>
-            </div>
+        <nav className="flex-1 px-3 space-y-1">
+          <button 
+            onClick={() => setViewMode('list')}
+            className={`w-full flex items-center space-x-4 px-5 py-3.5 rounded-r-full transition-all text-sm font-medium ${viewMode === 'list' ? 'bg-[#e8f0fe] text-google-blue' : 'text-[#3c4043] hover:bg-[#f1f3f4]'}`}
+          >
+            <LayoutGrid className="h-5 w-5" />
+            <span>Active Donations</span>
+          </button>
+          
+          <button 
+            onClick={() => setViewMode('map')}
+            className={`w-full flex items-center space-x-4 px-5 py-3.5 rounded-r-full transition-all text-sm font-medium ${viewMode === 'map' ? 'bg-[#e8f0fe] text-google-blue' : 'text-[#3c4043] hover:bg-[#f1f3f4]'}`}
+          >
+            <MapPin className="h-5 w-5" />
+            <span>Rescue Radar</span>
+          </button>
+
+          <button 
+            onClick={() => setShowProfile(true)}
+            className="w-full flex items-center space-x-4 px-5 py-3.5 rounded-r-full transition-all text-sm font-medium text-[#3c4043] hover:bg-[#f1f3f4]"
+          >
+            <History className="h-5 w-5" />
+            <span>My Contributions</span>
+          </button>
+
+          <div className="pt-6 mt-6 border-t border-[#f1f3f4] mx-5">
+             <p className="text-[11px] font-bold text-[#70757a] uppercase tracking-widest pl-1 mb-4">Support & Cloud</p>
+             <div className="space-y-1">
+                <button className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors">
+                  <HelpCircle className="h-4 w-4" />
+                  <span>Assistance</span>
+                </button>
+                <button className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors">
+                  <Settings className="h-4 w-4" />
+                  <span>Preferences</span>
+                </button>
+             </div>
+          </div>
+        </nav>
+
+        <div className="px-6 pt-4 border-t border-[#f1f3f4]">
+          <button onClick={onLogout} className="w-full flex items-center space-x-4 px-4 py-3 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all">
+            <Power className="h-5 w-5" />
+            <span>Disconnect</span>
+          </button>
         </div>
-      </header>
+      </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden relative flex flex-col bg-bg-dark">
-          {/* View Toggle */}
-          <div className="px-8 py-5 flex justify-between items-center bg-bg-dark/80 z-10 backdrop-blur-xl border-b border-white/5">
-              <div className="flex items-center space-x-3">
-                <div className="h-2 w-2 bg-primary rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-                    Donations Available: <span className="text-white">{filteredFoods.length}</span>
-                </h2>
-              </div>
-              
-              <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-white/5">
-                  <button 
-                      onClick={() => setViewMode('list')}
-                      className={`px-4 py-2 rounded-xl flex items-center justify-center transition-all duration-500 ${viewMode === 'list' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] scale-105' : 'text-slate-600 hover:text-slate-200'}`}
-                  >
-                      <LayoutGrid className="h-4 w-4 mr-2" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">List View</span>
-                  </button>
-                  <button 
-                      onClick={() => setViewMode('map')}
-                      className={`px-4 py-2 rounded-xl flex items-center justify-center transition-all duration-500 ${viewMode === 'map' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] scale-105' : 'text-slate-600 hover:text-slate-200'}`}
-                  >
-                      <Navigation className="h-4 w-4 mr-2" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Map View</span>
-                  </button>
-              </div>
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Superior Top Bar (Google Integrated) */}
+        <header className="h-20 bg-white border-b border-[#dadce0] flex items-center justify-between px-10 z-20">
+          <div className="flex-1 max-w-2xl relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-[#5f6368]" />
+            </div>
+            <input 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for surplus food..."
+              className="w-full bg-[#f1f3f4] border-transparent rounded-lg py-3 pl-12 pr-4 text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#4285f4]/20 focus:border-google-blue focus:shadow-md transition-all outline-none"
+            />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-32 scroll-smooth">
-              {viewMode === 'list' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
-                      {filteredFoods.map(food => (
-                          <FoodCard key={food._id} food={food} user={user} />
-                      ))}
-                      {filteredFoods.length === 0 && (
-                          <div className="col-span-full py-20 text-center glass rounded-[2.5rem] border-white/5 mt-4">
-                              <div className="bg-white/5 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
-                                <Search className="h-10 w-10 text-slate-700" />
-                              </div>
-                              <p className="font-black text-xl text-white">No results found</p>
-                              <p className="text-slate-500 text-sm mt-1">Try expanding your search or post a donation!</p>
-                          </div>
-                      )}
-                  </div>
-              ) : (
-                  <div className="h-full w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5 bg-bg-card animate-scale-in">
-                       <MapComponent foods={filteredFoods} userLocation={liveLocation} />
-                  </div>
-              )}
+          <div className="flex items-center space-x-6 ml-10">
+            <div className="flex flex-col items-end">
+                <div className="flex items-center space-x-2">
+                    <button 
+                        onClick={() => setIsEditingLocation(true)}
+                        className="text-xs font-bold text-google-blue hover:text-blue-700 flex items-center transition-colors"
+                    >
+                        <MapPin className="h-3.5 w-3.5 mr-1" />
+                        {locationName}
+                    </button>
+                </div>
+            </div>
+
+            <button 
+              onClick={() => setIsDonateModalOpen(true)}
+              className="bg-google-blue hover:bg-blue-600 text-white font-medium px-6 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all flex items-center space-x-2 active:scale-95"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Donate</span>
+            </button>
+            
+            <div className="h-10 w-10 bg-[#e8f0fe] rounded-full border border-google-blue/20 flex items-center justify-center text-google-blue font-bold shadow-sm">
+                {user.name?.charAt(0) || <UserIcon className="h-5 w-5" />}
+            </div>
           </div>
+        </header>
+
+        {/* View Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-10">
+          {viewMode === 'list' ? (
+            <div className="max-w-7xl mx-auto animate-fade-in">
+              <div className="flex items-center justify-between mb-10">
+                 <div>
+                    <h2 className="text-3xl font-normal text-[#202124]">Available Surpluses</h2>
+                    <p className="text-sm text-[#5f6368] mt-1 font-medium italic">Showing results near your proximity</p>
+                 </div>
+                 <div className="flex bg-[#f1f3f4] p-1 rounded-lg">
+                    <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'list' ? 'bg-white text-google-blue shadow-sm' : 'text-[#5f6368]'}`}>LIST</button>
+                    <button onClick={() => setViewMode('map')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'map' ? 'bg-white text-google-blue shadow-sm' : 'text-[#5f6368]'}`}>RADAR</button>
+                 </div>
+              </div>
+
+              {filteredFoods.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredFoods.map(food => (
+                    <FoodCard key={food._id} food={food} user={user} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[3rem] border border-dashed border-[#dadce0] animate-pulse">
+                   <LayoutGrid className="h-20 w-20 text-[#dadce0] mb-6" />
+                   <p className="text-lg font-medium text-[#5f6368]">No transmissions found in this sector.</p>
+                   <button onClick={() => setSearchQuery('')} className="mt-4 text-google-blue font-bold hover:underline">Clear active scanner</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="h-full w-full rounded-[2.5rem] overflow-hidden border border-[#dadce0] shadow-sm animate-fade-in relative">
+               <MapComponent foods={foods} userLocation={liveLocation} />
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Floating Action Button */}
-      <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50">
-          <button 
-              onClick={() => setIsDonateModalOpen(true)}
-              className="group bg-primary hover:bg-primary-dark text-white p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(6,182,212,0.3)] hover:shadow-[0_20px_50px_rgba(6,182,212,0.5)] hover:scale-110 active:scale-90 transition-all duration-500 flex items-center space-x-3 overflow-hidden"
-          >
-              <Plus className="h-8 w-8 transition-transform group-hover:rotate-90 duration-500" strokeWidth={3} />
-              <span className="font-black uppercase tracking-[0.2em] text-sm pr-2 max-w-0 group-hover:max-w-xs transition-all duration-500 overflow-hidden whitespace-nowrap">Donate Now</span>
-          </button>
-      </div>
-
-      {isDonateModalOpen && (
-          <DonateModal 
-              isOpen={isDonateModalOpen} 
-              onClose={() => setIsDonateModalOpen(false)} 
-              userLocation={liveLocation}
-              user={user}
-              onSuccess={fetchFoods}
-          />
+      <DonateModal 
+        isOpen={isDonateModalOpen} 
+        onClose={() => setIsDonateModalOpen(false)} 
+        userLocation={liveLocation}
+        user={user}
+        onSuccess={() => {
+            setIsDonateModalOpen(false);
+            fetchFoods();
+        }}
+      />
+      
+      {/* Location Settings Modal (Google Minimalist) */}
+      {isEditingLocation && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-10 w-full max-w-sm shadow-2xl animate-fade-in-up">
+                <h3 className="text-2xl font-normal text-[#202124] mb-2 text-center">Set Location</h3>
+                <p className="text-sm text-[#5f6368] mb-8 text-center">Find food in a different proximity</p>
+                <div className="space-y-6">
+                    <input 
+                        type="text" 
+                        placeholder="Search for city or area..."
+                        className="input-dark text-center !rounded-md"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                    />
+                    <div className="flex space-x-3">
+                        <button onClick={() => setIsEditingLocation(false)} className="flex-1 py-2 text-[#5f6368] font-medium hover:bg-[#f1f3f4] rounded-md transition-colors">Cancel</button>
+                        <button 
+                            onClick={() => {
+                                setLocationName(locationInput);
+                                setIsEditingLocation(false);
+                            }}
+                            className="flex-1 py-2 bg-google-blue text-white font-medium rounded-md hover:shadow-md transition-all shadow-sm"
+                        >
+                            Updates
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
       )}
     </div>
   );

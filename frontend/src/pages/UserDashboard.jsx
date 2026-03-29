@@ -7,20 +7,19 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   Activity, 
-  Zap,
-  Target,
-  ShieldCheck,
-  User as UserIcon,
-  ChevronRight,
-  TrendingUp,
-  History,
+  Zap, 
+  TrendingUp, 
+  History, 
   PhoneCall,
   CheckCircle,
   RefreshCw,
   Trash2,
   Edit3,
   X,
-  Save
+  Save,
+  ChevronRight,
+  Filter,
+  Download
 } from 'lucide-react';
 import { API_ENDPOINTS } from '../config';
 import { formatDistanceToNow } from 'date-fns';
@@ -40,7 +39,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
       const data = await res.json();
       setActivity(data);
     } catch (err) {
-      console.error("Activity fetch err", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -50,8 +49,8 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
     fetchActivity();
   }, []);
 
-  const handleConfirmCollection = async (foodId) => {
-    if (!window.confirm("Confirm that the food has been successfully collected? This will remove the posting from the map.")) return;
+  const handleComplete = async (foodId) => {
+    if (!window.confirm('Mark this donation as successfully collected?')) return;
     
     setUpdating(true);
     try {
@@ -59,18 +58,15 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      if (res.ok) {
-        alert("Rescue mission completed successfully!");
-        fetchActivity();
-      }
+      if (res.ok) fetchActivity();
     } catch (err) {
-      console.error("Complete rescue err", err);
+      console.error(err);
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleEditSubmit = async (e) => {
+  const handleUpdateFood = async (e) => {
     e.preventDefault();
     setUpdating(true);
     try {
@@ -78,300 +74,241 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-            name: editingFood.name,
-            quantity: editingFood.quantity,
-            description: editingFood.description,
-            expiryTime: editingFood.expiryTime,
-            phone: editingFood.phone
-        })
+        body: JSON.stringify(editingFood)
       });
       if (res.ok) {
         setEditingFood(null);
         fetchActivity();
       }
     } catch (err) {
-      console.error("Update food err", err);
+      console.error(err);
     } finally {
       setUpdating(false);
     }
   };
 
-  const stats = [
-    { label: 'Total Rescues', value: activity.claims.length, icon: Target, color: 'text-primary' },
-    { label: 'Impact Rank', value: user.rating?.toFixed(1) || '0.0', icon: Trophy, color: 'text-amber-400' },
-    { label: 'Global Rank', value: '#128', icon: TrendingUp, color: 'text-emerald-400' },
-    { label: 'Contribution', value: activity.donations.length, icon: Zap, color: 'text-cyan-400' },
-  ];
-
   if (loading) return (
-     <div className="flex-1 flex flex-col items-center justify-center bg-bg-dark space-y-6 animate-pulse">
-        <div className="h-20 w-20 bg-primary/10 rounded-[2.5rem] border border-primary/20 flex items-center justify-center">
-            <Activity className="h-10 w-10 text-primary" />
+    <div className="flex-1 flex items-center justify-center bg-[#f8f9fa]">
+        <div className="flex flex-col items-center">
+            <RefreshCw className="h-10 w-10 text-google-blue animate-spin mb-4" />
+            <p className="text-sm font-bold text-[#5f6368] uppercase tracking-[0.3em]">Synchronizing Archive...</p>
         </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-600">Syncing Personal Data...</p>
-     </div>
+    </div>
   );
 
+  const totalImpact = activity.donations.length + activity.claims.length;
+
   return (
-    <div className="flex-1 overflow-y-auto bg-bg-dark animate-fade-in-up custom-scrollbar relative">
-      {/* Profile Header */}
-      <section className="relative px-8 pt-12 pb-16 overflow-hidden">
-         <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/5 via-bg-dark/20 to-bg-dark" />
-         <div className="relative z-10">
-            <button onClick={onBack} className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-primary transition-colors group mb-10">
-               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-               <span>Back to Home</span>
+    <div className="flex-1 bg-[#f8f9fa] h-full overflow-y-auto custom-scrollbar font-sans">
+      <div className="max-w-6xl mx-auto px-8 py-10">
+        
+        {/* Superior Header Navigation */}
+        <div className="flex items-center justify-between mb-12">
+            <button 
+                onClick={onBack}
+                className="group flex items-center space-x-3 text-[#5f6368] hover:text-google-blue transition-all"
+            >
+                <div className="h-10 w-10 bg-white border border-[#dadce0] rounded-full flex items-center justify-center group-hover:shadow-md transition-shadow">
+                    <ArrowLeft className="h-5 w-5" />
+                </div>
+                <span className="font-bold text-sm tracking-tight">Return to Operation</span>
             </button>
-
-            <div className="flex flex-col md:flex-row md:items-end justify-between space-y-8 md:space-y-0">
-               <div className="flex items-center space-x-8">
-                  <div className="h-32 w-32 glass rounded-[3rem] p-1 border border-white/5 relative group">
-                     <div className="w-full h-full bg-slate-950 rounded-[2.8rem] flex items-center justify-center text-primary font-black text-5xl shadow-inner group-hover:bg-primary/5 transition-colors duration-500">
-                        {user.name?.charAt(0) || <UserIcon className="h-14 w-14" />}
-                     </div>
-                     <div className="absolute -bottom-2 -right-2 h-10 w-10 bg-primary rounded-2xl flex items-center justify-center border-4 border-bg-dark shadow-[0_0_20px_rgba(6,182,212,0.5)]">
-                        <ShieldCheck className="h-5 w-5 text-slate-900" />
-                     </div>
-                  </div>
-                  <div>
-                     <h2 className="text-5xl font-black text-white tracking-tighter mb-3">{user.name}</h2>
-                     <div className="flex items-center space-x-6">
-                        <div className="flex items-center space-x-2">
-                           <div className="h-2 w-2 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Profile Verified</p>
-                        </div>
-                        <div className="bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
-                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{user.phone}</p>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               
-               <div className="flex space-x-4">
-                  <button 
-                    onClick={onUpdateProfile}
-                    className="btn-primary !py-3 !px-10 !text-[10px] !rounded-2xl"
-                  >
-                     Update Identity
-                  </button>
-               </div>
+            <div className="flex items-center space-x-4">
+                <button className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-[#5f6368] bg-white border border-[#dadce0] rounded-full hover:bg-[#f1f3f4] transition-colors shadow-sm">
+                   <Download className="h-4 w-4" />
+                   <span>EXPORT DATA</span>
+                </button>
+                <div className="h-10 w-10 bg-[#e8f0fe] rounded-full flex items-center justify-center text-google-blue border border-[#4285f4]/20">
+                   <Trophy className="h-5 w-5" />
+                </div>
             </div>
-         </div>
-      </section>
+        </div>
 
-      {/* Stats Dashboard */}
-      <section className="px-8 -mt-6 pb-12">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, i) => (
-                  <div key={i} className="glass p-8 rounded-[2.5rem] border border-white/5 hover:border-primary/20 transition-all duration-500 group">
-                      <div className="flex items-center justify-between mb-6">
-                         <div className={`p-3 bg-bg-dark rounded-2xl border border-white/5 group-hover:border-primary/10 transition-colors`}>
-                            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                         </div>
-                         <ChevronRight className="h-4 w-4 text-slate-800" />
-                      </div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 mb-2">{stat.label}</p>
-                      <h4 className="text-4xl font-black text-white tracking-tighter">{stat.value}</h4>
-                  </div>
-              ))}
-          </div>
-      </section>
-
-      {/* Activity Timeline */}
-      <section className="px-8 pb-32">
-          <div className="bg-bg-card/40 backdrop-blur-3xl rounded-[3.5rem] border border-white/5 overflow-hidden">
-             <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between space-y-6 md:space-y-0 bg-white/[0.01]">
-                <div className="flex items-center space-x-4">
-                   <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
-                      <History className="h-5 w-5 text-primary" />
-                   </div>
-                   <h3 className="text-xl font-black text-white uppercase tracking-widest">My Activity</h3>
+        {/* Impact Scoreboard (Material Style) */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in-up">
+            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm flex flex-col items-center text-center">
+                <p className="text-[#5f6368] text-[10px] font-black uppercase tracking-[0.2em] mb-3">Impact Level</p>
+                <p className="text-5xl font-black text-[#202124] tracking-tighter mb-2">{user.rating?.toFixed(1) || '0.0'}</p>
+                <div className="flex items-center space-x-1 text-[#fbbc05]">
+                    {[1, 2, 3, 4, 5].map(i => <Trophy key={i} className={`h-3 w-3 ${i <= user.rating ? 'fill-current' : 'opacity-20'}`} />)}
                 </div>
-
-                <div className="flex bg-slate-900/50 p-1.5 rounded-[1.5rem] border border-white/5">
-                   <button 
-                      onClick={() => setActiveTab('donations')}
-                      className={`px-8 py-3 rounded-[1.2rem] text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'donations' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-200'}`}
-                   >
-                      My Donations
-                   </button>
-                   <button 
-                      onClick={() => setActiveTab('claims')}
-                      className={`px-8 py-3 rounded-[1.2rem] text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'claims' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'text-slate-600 hover:text-slate-200'}`}
-                   >
-                      My Rescues
-                   </button>
+            </div>
+            
+            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm group hover:border-google-blue/30 transition-all cursor-default">
+                <div className="h-12 w-12 bg-[#e8f0fe] rounded-2xl flex items-center justify-center text-google-blue mb-6 shadow-sm">
+                   <TrendingUp className="h-6 w-6" />
                 </div>
-             </div>
+                <p className="text-3xl font-black text-[#202124] tracking-tighter">{totalImpact}</p>
+                <p className="text-[10px] font-black text-[#70757a] uppercase tracking-widest mt-1">Total Operations</p>
+            </div>
 
-             <div className="p-10">
+            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm group hover:border-[#34a853]/30 transition-all cursor-default">
+                <div className="h-12 w-12 bg-[#e6f4ea] rounded-2xl flex items-center justify-center text-google-green mb-6 shadow-sm">
+                   <History className="h-6 w-6" />
+                </div>
+                <p className="text-3xl font-black text-[#202124] tracking-tighter">{activity.donations.filter(d => d.status === 'completed').length}</p>
+                <p className="text-[10px] font-black text-[#70757a] uppercase tracking-widest mt-1">Resource Rescues</p>
+            </div>
+
+            <div className="bg-white p-8 rounded-[2rem] border border-[#dadce0] shadow-sm group hover:border-[#ea4335]/30 transition-all cursor-default">
+                <div className="h-12 w-12 bg-[#fce8e6] rounded-2xl flex items-center justify-center text-google-red mb-6 shadow-sm">
+                   <Activity className="h-6 w-6" />
+                </div>
+                <p className="text-3xl font-black text-[#202124] tracking-tighter">{activity.claims.length}</p>
+                <p className="text-[10px] font-black text-[#70757a] uppercase tracking-widest mt-1">Claims Facilitated</p>
+            </div>
+        </div>
+
+        {/* Tabbed Activity Tracker (Google Material Tabs) */}
+        <div className="bg-white rounded-[2.5rem] border border-[#dadce0] shadow-sm overflow-hidden animate-fade-in relative">
+            <div className="flex border-b border-[#f1f3f4] shrink-0 bg-[#fff] z-10 sticky top-0">
+                <button 
+                  onClick={() => setActiveTab('donations')}
+                  className={`flex-1 py-6 font-bold text-xs tracking-[0.2em] transition-all relative ${activeTab === 'donations' ? 'text-google-blue' : 'text-[#70757a] hover:bg-[#f8f9fa]'}`}
+                >
+                    POSTED DONATIONS
+                    {activeTab === 'donations' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-google-blue rounded-t-full" />}
+                </button>
+                <button 
+                  onClick={() => setActiveTab('claims')}
+                  className={`flex-1 py-6 font-bold text-xs tracking-[0.2em] transition-all relative ${activeTab === 'claims' ? 'text-google-blue' : 'text-[#70757a] hover:bg-[#f8f9fa]'}`}
+                >
+                    ACTIVE CLAIMS
+                    {activeTab === 'claims' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-google-blue rounded-t-full" />}
+                </button>
+            </div>
+
+            <div className="p-10 min-h-[500px]">
                 {activeTab === 'donations' ? (
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {activity.donations.length > 0 ? activity.donations.map((item, idx) => (
-                         <div key={idx} className="glass p-8 rounded-[2.8rem] border border-white/5 group hover:bg-white/[0.02] transition-all duration-300">
-                             <div className="flex justify-between items-start mb-6">
-                                <div className="space-y-2">
-                                   <h4 className="text-2xl font-black text-white tracking-tighter group-hover:text-primary transition-colors">{item.name}</h4>
-                                   <div className="flex items-center space-x-3">
-                                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 bg-white/5 px-3 py-1 rounded-lg border border-white/5">{item.quantity}</p>
-                                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-700 italic">{item.location?.address?.split(',')[0]} Sector</p>
-                                   </div>
+                    <div className="space-y-6">
+                        {activity.donations.length > 0 ? activity.donations.map(food => (
+                            <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-5">
+                                        <div className="h-16 w-16 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
+                                            {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center space-x-3 mb-1">
+                                                <h4 className="text-lg font-bold text-[#202124] tracking-tight">{food.name}</h4>
+                                                <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${food.status === 'completed' ? 'bg-[#e6f4ea] text-google-green' : food.status === 'claimed' ? 'bg-[#e8f0fe] text-google-blue' : 'bg-[#fff] border border-[#dadce0] text-[#70757a]'}`}>
+                                                    {food.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
+                                               <div className="flex items-center space-x-1"><Clock className="h-3.5 w-3.5 text-[#4285f4]" /> <span>{formatDistanceToNow(new Date(food.createdAt), { addSuffix: true })}</span></div>
+                                               <div className="flex items-center space-x-1"><MapPin className="h-3.5 w-3.5 text-[#ea4335]" /> <span>{food.location?.address || 'Nearby'}</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        {food.status === 'claimed' && (
+                                            <button 
+                                                onClick={() => handleComplete(food._id)}
+                                                className="flex items-center space-x-2 px-5 py-2.5 bg-google-green hover:bg-green-600 text-white rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
+                                            >
+                                                <CheckCircle className="h-4 w-4" />
+                                                <span>CONFIRM HANDOFF</span>
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={() => setEditingFood(food)}
+                                            className="p-3 bg-white border border-[#dadce0] text-[#5f6368] hover:text-google-blue rounded-xl transition-all shadow-sm"
+                                        >
+                                            <Edit3 className="h-5 w-5" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-white/10 ${item.status === 'available' ? 'bg-primary/10 text-primary border-primary/20' : (item.status === 'claimed' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20')}`}>
-                                   {item.status}
-                                </div>
-                             </div>
-                             
-                             {item.status === 'claimed' && (
-                                 <button 
-                                    onClick={() => handleConfirmCollection(item._id)}
-                                    disabled={updating}
-                                    className="w-full mb-6 py-4 bg-emerald-500 text-slate-950 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] transition-all"
-                                 >
-                                    Confirm Collection & Clear
-                                 </button>
-                             )}
-
-                             <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center">
-                                   <Clock className="w-3 h-3 mr-2 text-primary" />
-                                   Broadcast {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                                </span>
-                                {item.status === 'available' && (
-                                    <button 
-                                        onClick={() => setEditingFood(item)}
-                                        className="text-[9px] font-black text-primary uppercase tracking-[0.3em] hover:brightness-125 transition-all"
-                                    >
-                                        Edit Posting
-                                    </button>
-                                )}
-                             </div>
-                         </div>
-                      )) : (
-                         <div className="col-span-full py-20 text-center animate-fade-in">
-                            <Package className="h-16 w-16 text-slate-800 mx-auto mb-6 opacity-20" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">No active surplus broadcasts found.</p>
-                         </div>
-                      )}
-                   </div>
+                            </div>
+                        )) : (
+                            <div className="text-center py-24 opacity-40">
+                                <Zap className="h-16 w-16 mx-auto mb-6 text-[#dadce0]" />
+                                <p className="text-sm font-bold tracking-[0.2em] text-[#5f6368] uppercase">Zero donation history detected.</p>
+                            </div>
+                        )}
+                    </div>
                 ) : (
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     {activity.claims.length > 0 ? activity.claims.map((item, idx) => (
-                        <div key={idx} className="glass p-8 rounded-[2.8rem] border border-emerald-500/10 group bg-emerald-500/[0.01] hover:bg-emerald-500/[0.03] transition-all duration-300">
-                            <div className="flex justify-between items-start mb-6">
-                               <div className="space-y-2">
-                                  <h4 className="text-2xl font-black text-white tracking-tighter group-hover:text-emerald-400 transition-colors">{item.name}</h4>
+                    <div className="space-y-6">
+                        {activity.claims.length > 0 ? activity.claims.map(food => (
+                            <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-5">
+                                      <div className="h-16 w-16 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
+                                          {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center space-x-3 mb-1">
+                                              <h4 className="text-lg font-bold text-[#202124] tracking-tight">{food.name}</h4>
+                                              <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest bg-[#e8f0fe] text-google-blue border border-[#4285f4]/20">CLAIMED</span>
+                                          </div>
+                                          <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
+                                             <div className="flex items-center space-x-1"><UserIcon className="h-3.5 w-3.5 text-[#4285f4]" /> <span>Donor: {food.donor?.name || 'Anonymous'}</span></div>
+                                             <div className="flex items-center space-x-1"><PhoneCall className="h-3.5 w-3.5 text-[#34a853]" /> <span>{food.phone || 'Contact Required'}</span></div>
+                                          </div>
+                                      </div>
+                                  </div>
                                   <div className="flex items-center space-x-3">
-                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
-                                        {item.status === 'completed' ? 'Rescue Successful' : 'Claimed'}
-                                     </p>
+                                      <a href={`tel:${food.phone}`} className="p-3 bg-google-green text-white rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95">
+                                          <PhoneCall className="h-5 w-5" />
+                                      </a>
+                                      <button className="flex items-center space-x-2 px-6 py-2.5 bg-white border border-[#dadce0] text-[#5f6368] hover:text-google-blue rounded-full text-xs font-bold transition-all shadow-sm">
+                                          <span>DIRECTIONS</span>
+                                          <ChevronRight className="h-4 w-4" />
+                                      </button>
                                   </div>
-                               </div>
-                               <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-                                  <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-                               </div>
+                                </div>
                             </div>
-                            <div className="space-y-4">
-                               <div className="flex items-center space-x-4">
-                                  <div className="h-8 w-8 bg-slate-900 rounded-xl flex items-center justify-center text-emerald-400 text-xs font-black border border-white/5">
-                                     {item.donor?.name?.charAt(0)}
-                                  </div>
-                                  <div>
-                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Donated By</p>
-                                     <p className="text-xs font-black text-white tracking-tight leading-none">{item.donor?.name}</p>
-                                  </div>
-                               </div>
-                               <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Rescued {formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true })}</span>
-                                  <button className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.3em] hover:brightness-125">View Details</button>
-                               </div>
+                        )) : (
+                            <div className="text-center py-24 opacity-40">
+                                <History className="h-16 w-16 mx-auto mb-6 text-[#dadce0]" />
+                                <p className="text-sm font-bold tracking-[0.2em] text-[#5f6368] uppercase">No active claims in operation.</p>
                             </div>
-                        </div>
-                     )) : (
-                        <div className="col-span-full py-20 text-center animate-fade-in">
-                           <Target className="h-16 w-16 text-slate-800 mx-auto mb-6 opacity-20" />
-                           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">No completed rescue missions documented.</p>
-                        </div>
-                     )}
-                   </div>
+                        )}
+                    </div>
                 )}
-             </div>
-          </div>
-      </section>
+            </div>
+        </div>
+      </div>
 
-      {/* Edit Modal Overlay */}
+      {/* Superior Edit Modal (Material Style) */}
       {editingFood && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-3xl bg-slate-950/60 transition-all duration-500 animate-fade-in">
-              <div className="glass w-full max-w-2xl rounded-[3rem] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.8)] overflow-hidden animate-scale-in">
-                  <form onSubmit={handleEditSubmit} className="p-10 space-y-8">
-                      <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                        <h3 className="text-3xl font-black text-white tracking-tighter">Edit Posting</h3>
-                        <button type="button" onClick={() => setEditingFood(null)} className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hover:text-white transition-colors">Cancel</button>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-in-up overflow-hidden">
+                  <div className="bg-white px-8 py-6 border-b border-[#f1f3f4] flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-[#202124] tracking-tight">Mission Update</h3>
+                      <button onClick={() => setEditingFood(null)} className="p-2 hover:bg-[#f1f3f4] rounded-full transition-colors text-[#5f6368]"><X className="h-5 w-5" /></button>
+                  </div>
+                  <form onSubmit={handleUpdateFood} className="p-10 space-y-8">
+                      <div className="space-y-2">
+                          <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Asset Designation</label>
+                          <input 
+                              className="input-dark !rounded-lg"
+                              value={editingFood.name}
+                              onChange={e => setEditingFood({...editingFood, name: e.target.value})}
+                              placeholder="Update item name..."
+                          />
                       </div>
-
-                      <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Food Name</label>
-                            <input 
-                                type="text"
-                                className="input-dark bg-white/5 !py-4"
-                                value={editingFood.name}
-                                onChange={e => setEditingFood({...editingFood, name: e.target.value})}
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Quantity</label>
-                                <input 
-                                    type="text"
-                                    className="input-dark bg-white/5 !py-4"
-                                    value={editingFood.quantity}
-                                    onChange={e => setEditingFood({...editingFood, quantity: e.target.value})}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Expiry</label>
-                                <input 
-                                    type="datetime-local"
-                                    className="input-dark bg-white/5 !py-4"
-                                    value={new Date(editingFood.expiryTime).toISOString().slice(0,16)}
-                                    onChange={e => setEditingFood({...editingFood, expiryTime: e.target.value})}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Contact Phone Number</label>
-                            <input 
-                                type="text"
-                                className="input-dark bg-white/5 !py-4"
-                                value={editingFood.phone || ''}
-                                onChange={e => setEditingFood({...editingFood, phone: e.target.value})}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Description</label>
-                            <textarea 
-                                className="input-dark bg-white/5 !py-4 min-h-[100px]"
-                                value={editingFood.description}
-                                onChange={e => setEditingFood({...editingFood, description: e.target.value})}
-                            />
-                        </div>
+                      <div className="space-y-2">
+                          <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Current Quantity</label>
+                          <input 
+                              className="input-dark !rounded-lg"
+                              value={editingFood.quantity}
+                              onChange={e => setEditingFood({...editingFood, quantity: e.target.value})}
+                              placeholder="e.g. 10 kg, 5 meals"
+                          />
                       </div>
-
-                      <button 
-                        type="submit"
-                        disabled={updating}
-                        className="w-full btn-primary !py-5 !text-[12px] !rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.2)]"
-                      >
-                        {updating ? 'Updating Mission...' : 'Save Changes'}
-                      </button>
+                      <div className="flex space-x-3 pt-4">
+                          <button type="button" onClick={() => setEditingFood(null)} className="flex-1 py-3 text-[#5f6368] font-bold text-sm tracking-widest hover:bg-[#f1f3f4] rounded-xl transition-all">ABORT</button>
+                          <button 
+                            type="submit" 
+                            disabled={updating}
+                            className="flex-1 py-3 bg-google-blue text-white font-bold text-sm tracking-widest rounded-xl shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-50"
+                          >
+                              {updating ? 'SYNCING...' : 'SAVE CHANGES'}
+                          </button>
+                      </div>
                   </form>
               </div>
           </div>
