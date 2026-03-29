@@ -90,7 +90,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
                   <MapPin className="h-6 w-6 text-primary animate-pulse" />
                </div>
                <div className="text-sm flex flex-col">
-                   <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] mb-1">Rescue Zone</p>
+                   <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] mb-1">Donation Zone</p>
                    {isEditingLocation ? (
                        <input 
                            type="text"
@@ -140,10 +140,10 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
                     <p className="text-white font-black text-sm tracking-tight">{user.name || 'Explorer'}</p>
                     <div className="flex items-center justify-end space-x-2 mt-1">
                         <div className="h-1.5 w-1.5 bg-primary rounded-full animate-ping" />
-                        <p className="text-primary text-[9px] font-black uppercase tracking-widest">Operator Active</p>
+                        <p className="text-primary text-[9px] font-black uppercase tracking-widest">Profile Active</p>
                     </div>
                 </div>
-                <div className="h-14 w-14 glass rounded-[1.25rem] flex items-center justify-center border-white/10 group-hover/prof:border-primary/50 group-hover/prof:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all">
+                <div className="h-14 w-14 glass rounded-[1.25rem] flex items-center justify-center border-white/10 group-hover/prof:border-primary/50 group-hover/prof:shadow-[0_0_20px_rgba(6,182,212,0.25)] transition-all">
                     <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-primary font-black shadow-inner border border-white/5 group-hover/prof:bg-primary/10 group-hover/prof:text-white transition-colors">
                         {user.name?.charAt(0) || <UserIcon className="h-5 w-5" />}
                     </div>
@@ -164,7 +164,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
             </div>
             <input
                 type="text"
-                placeholder="Scan for surplus (e.g. 'biriyani')..."
+                placeholder="Search for available food..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="input-dark pl-14"
@@ -182,7 +182,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
               <div className="flex items-center space-x-3">
                 <div className="h-2 w-2 bg-primary rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-                    Active Transmissions: <span className="text-white">{filteredFoods.length}</span>
+                    Donations Available: <span className="text-white">{filteredFoods.length}</span>
                 </h2>
               </div>
               
@@ -192,14 +192,14 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
                       className={`px-4 py-2 rounded-xl flex items-center justify-center transition-all duration-500 ${viewMode === 'list' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] scale-105' : 'text-slate-600 hover:text-slate-200'}`}
                   >
                       <LayoutGrid className="h-4 w-4 mr-2" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Grid</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">List View</span>
                   </button>
                   <button 
                       onClick={() => setViewMode('map')}
                       className={`px-4 py-2 rounded-xl flex items-center justify-center transition-all duration-500 ${viewMode === 'map' ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] scale-105' : 'text-slate-600 hover:text-slate-200'}`}
                   >
                       <Navigation className="h-4 w-4 mr-2" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Radar</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Map View</span>
                   </button>
               </div>
           </div>
@@ -216,7 +216,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
                                 <Search className="h-10 w-10 text-slate-700" />
                               </div>
                               <p className="font-black text-xl text-white">No results found</p>
-                              <p className="text-slate-500 text-sm mt-1">Try expanding your search or post a surplus!</p>
+                              <p className="text-slate-500 text-sm mt-1">Try expanding your search or post a donation!</p>
                           </div>
                       )}
                   </div>
