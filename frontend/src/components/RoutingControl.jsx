@@ -4,8 +4,8 @@ import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import "leaflet-routing-machine";
 import { useMap } from "react-leaflet";
 
-// Ensure the plugin is attached to L
-if (typeof window !== 'undefined' && !window.L) {
+// Map standard Leaflet to window so the plugin can find it
+if (typeof window !== 'undefined') {
     window.L = L;
 }
 
@@ -15,12 +15,7 @@ const RoutingControl = ({ start, end }) => {
   useEffect(() => {
     if (!map || !start || !end) return;
 
-    // Remove any existing routing controls
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Polyline && layer.options.interactive === false) {
-        // This is a naive way to find LRM layers, standard LRM puts them into a pane
-      }
-    });
+    console.log("📍 Routing initialized targeting:", end);
 
     const routingControl = L.Routing.control({
       waypoints: [
@@ -34,18 +29,24 @@ const RoutingControl = ({ start, end }) => {
       showAlternatives: false,
       lineOptions: {
         styles: [
-          { color: '#4285F4', opacity: 0.9, weight: 8 }, // Google Blue (Primary)
-          { color: 'white', opacity: 0.4, weight: 3 }    // Highlight
+          { color: '#4285F4', opacity: 0.9, weight: 12 }, // Thicker Google Blue
+          { color: 'white', opacity: 0.5, weight: 4 }     // Inner highlight
         ],
         extendToWaypoints: true,
         missingRouteTolerance: 0
       },
-      createMarker: () => null,
-      show: false
+      createMarker: () => null, // Hide default marker icons
+      show: false // Hide text instructions panel
     }).addTo(map);
+
+    // Force a map resize/refresh after adding control
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
 
     return () => {
       if (map && routingControl) {
+        console.log("🗑️ Clearing previous route");
         map.removeControl(routingControl);
       }
     };
