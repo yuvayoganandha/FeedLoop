@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import L from "leaflet";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import { Polyline, useMap } from "react-leaflet";
 
-// Ensure Leaflet is globally available BEFORE the plugin is imported
-if (typeof window !== 'undefined') {
-    window.L = L;
-}
-import "leaflet-routing-machine";
-
+/**
+ * RoutingControl: A robust, plugin-free navigation path component.
+ * Uses direct fetch() to OSRM APIs and renders via standard React-Leaflet Polyline.
+ */
 const RoutingControl = ({ start, end }) => {
   const map = useMap();
   const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!map || !start || !end) {
@@ -19,34 +17,57 @@ const RoutingControl = ({ start, end }) => {
         return;
     }
 
-    console.log("🛣️ Manual Routing: Fetching directions from OSRM...");
-
-    const router = L.Routing.osrmv1({
-      serviceUrl: `https://routing.openstreetmap.de/routed-car/route/v1/driving`,
-      timeout: 10000
-    });
-
-    const waypoints = [
-      L.Routing.waypoint(L.latLng(start[0], start[1])),
-      L.Routing.waypoint(L.latLng(end[0], end[1]))
-    ];
-
-    router.route(waypoints, (err, routes) => {
-      if (err) {
-        console.error("❌ OSRM Routing Error:", err.message);
-        return;
-      }
-
-      if (routes && routes.length > 0) {
-        // Extract smooth coordinates for the polyline
-        const coords = routes[0].coordinates.map(c => [c.lat, c.lng]);
-        setPositions(coords);
+    const fetchRoute = async () => {
+        setLoading(true);
+        // OSRM expects coordinates in [longitude,latitude] order
+        const startCoords = `${start[1]},${start[0]}`;
+        const endCoords = `${end[1]},${end[0]}`;
         
-        // Use fitBounds instead of fitSelectedRoutes for a clean React feel
-        const bounds = L.latLngBounds(coords);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-      }
-    });
+        // Use high-reliability OpenStreetMap Deutschland as primary
+        // Use Project OSRM as secondary fallback
+        const servers = [
+            `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`,
+            `https://router.project-osrm.org/route/v1/driving/${startCoords};${endCoords}?overview=full&geometries=geojson`
+        ];
+
+        let success = false;
+        
+        for (const url of servers) {
+            if (success) break;
+            
+            try {
+                console.log(`🌐 Fetching Navigation Path from: ${new URL(url).hostname}...`);
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (data.routes && data.routes.length > 0) {
+                    // GeoJSON coordinates are [lng, lat], Leaflet wants [lat, lng]
+                    const routeCoords = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    setPositions(routeCoords);
+                    
+                    // Zoom the map to fit the entire route with nice padding
+                    const bounds = L.latLngBounds(routeCoords);
+                    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15, animate: true, duration: 1 });
+                    
+                    success = true;
+                    console.log("✅ Navigation Path Rendered Successfully.");
+                }
+            } catch (err) {
+                console.error(`⚠️ Routing attempt failed on ${new URL(url).hostname}:`, err.message);
+            }
+        }
+        
+        if (!success) {
+            console.error("❌ CRITICAL: All routing servers failed. Please check your internet connection.");
+        }
+        setLoading(false);
+    };
+
+    fetchRoute();
 
     return () => {
         setPositions([]);
@@ -57,25 +78,25 @@ const RoutingControl = ({ start, end }) => {
 
   return (
     <>
-        {/* Core Route Path - High Visibility Google Blue */}
+        {/* Core High-Visibility Route Line */}
         <Polyline 
             positions={positions} 
             pathOptions={{
-                color: '#4285F4',
+                color: '#4285F4', // Google Blue
                 weight: 10,
                 opacity: 0.9,
                 lineJoin: 'round',
                 lineCap: 'round',
-                pane: 'overlayPane' // Ensures it stays above the tiles
+                pane: 'overlayPane' // Ensures visibility above all tiles
             }}
         />
-        {/* White Highlight for premium contrast */}
+        {/* Superior Contrast Inner Line */}
         <Polyline 
             positions={positions} 
             pathOptions={{
                 color: 'white',
                 weight: 3,
-                opacity: 0.5,
+                opacity: 0.6,
                 lineJoin: 'round',
                 lineCap: 'round',
                 pane: 'overlayPane'
