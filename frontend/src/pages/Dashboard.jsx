@@ -27,6 +27,21 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [locationName, setLocationName] = useState(user.homeLocation?.address || 'Chennai');
 
   useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLiveLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setLocationName('Current Location');
+        },
+        (error) => console.log('Geolocation not supported or denied')
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     const newSocket = io(API_BASE_URL);
     setSocket(newSocket);
 
