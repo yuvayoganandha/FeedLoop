@@ -19,7 +19,8 @@ import {
   Save,
   ChevronRight,
   Filter,
-  Download
+  Download,
+  User as UserIcon
 } from 'lucide-react';
 import { API_ENDPOINTS } from '../config';
 import { formatDistanceToNow } from 'date-fns';
@@ -187,7 +188,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                             <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-5">
-                                        <div className="h-16 w-16 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
+                                        <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
                                             {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                         </div>
                                         <div>
@@ -235,7 +236,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                             <div key={food._id} className="bg-[#f8f9fa] border border-[#dadce0] rounded-2xl p-6 hover:shadow-md hover:bg-white transition-all group">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-5">
-                                      <div className="h-16 w-16 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
+                                      <div className="h-16 w-16 shrink-0 bg-white border border-[#dadce0] rounded-xl overflow-hidden shadow-sm">
                                           {food.image ? <img src={food.image} className="w-full h-full object-cover" /> : <Package className="h-6 w-6 text-[#dadce0] mx-auto mt-4" />}
                                       </div>
                                       <div>
@@ -245,12 +246,12 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
                                           </div>
                                           <div className="flex items-center space-x-4 text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
                                              <div className="flex items-center space-x-1"><UserIcon className="h-3.5 w-3.5 text-[#4285f4]" /> <span>Donor: {food.donor?.name || 'Anonymous'}</span></div>
-                                             <div className="flex items-center space-x-1"><PhoneCall className="h-3.5 w-3.5 text-[#34a853]" /> <span>{food.phone || 'Contact Required'}</span></div>
+                                             <div className="flex items-center space-x-1"><PhoneCall className="h-3.5 w-3.5 text-[#34a853]" /> <span>{food.phone || food.donor?.phone || 'Contact Required'}</span></div>
                                           </div>
                                       </div>
                                   </div>
                                   <div className="flex items-center space-x-3">
-                                      <a href={`tel:${food.phone}`} className="p-3 bg-google-green text-white rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95">
+                                      <a href={`tel:${food.phone || food.donor?.phone || ''}`} className="p-3 shrink-0 bg-google-green text-white rounded-xl inline-flex items-center justify-center shadow-sm hover:shadow-md transition-all active:scale-95">
                                           <PhoneCall className="h-5 w-5" />
                                       </a>
                                       <button className="flex items-center space-x-2 px-6 py-2.5 bg-white border border-[#dadce0] text-[#5f6368] hover:text-google-blue rounded-full text-xs font-bold transition-all shadow-sm">

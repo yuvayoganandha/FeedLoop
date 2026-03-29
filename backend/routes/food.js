@@ -2,6 +2,19 @@ const express = require('express');
 const router = express.Router();
 const Food = require('../models/Food');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads/'));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 // Middleware to authenticate
 const authReq = (req, res, next) => {
@@ -17,9 +30,24 @@ const authReq = (req, res, next) => {
 }
 
 // POST /api/food
-router.post('/', authReq, async (req, res) => {
+router.post('/', authReq, upload.single('image'), async (req, res) => {
   try {
-    const { name, quantity, location, expiryTime, image, address, description, phone } = req.body;
+    let { name, quantity, location, expiryTime, address, description, phone } = req.body;
+    
+    // Parse location if it comes as a string from FormData
+    if (typeof location === 'string') {
+        try {
+            location = JSON.parse(location);
+        } catch(e) {}
+    }
+    
+    // Address may come directly in the body, or inside location
+    let finalAddress = address || (location && location.address) || '';
+
+    let image = req.body.image || '';
+    if (req.file) {
+      image = '/uploads/' + req.file.filename;
+    }
     
     const newFood = new Food({
       name,
@@ -29,7 +57,7 @@ router.post('/', authReq, async (req, res) => {
       location: {
          type: 'Point',
          coordinates: [location.lng, location.lat],
-         address
+         address: finalAddress
       },
       expiryTime,
       image,
@@ -56,7 +84,7 @@ router.get('/', async (req, res) => {
         
         if (lat && lng) {
             // Geospatial Query using $near to sort by distance
-            foods = await Food.find({ status: 'available' })
+            foods = await Food.find({ status: 'available', expiryTime: { $gt: new Date() } })
                  .where('location').near({
                      center: {
                         type: 'Point',
@@ -66,8 +94,8 @@ router.get('/', async (req, res) => {
                  })
                  .populate('donor', 'name rating phone');
         } else {
-            // No location provided, return all available
-            foods = await Food.find({ status: 'available' }).sort({ createdAt: -1 })
+            // No location provided, return all available active ones
+            foods = await Food.find({ status: 'available', expiryTime: { $gt: new Date() } }).sort({ createdAt: -1 })
                  .populate('donor', 'name rating phone');
         }
         res.status(200).json(foods);

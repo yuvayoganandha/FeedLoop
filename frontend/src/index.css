@@ -113,3 +113,15 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-all;
 }
+
+/* Elegant Dark Mode Toggle */
+html.dark {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #111;
+}
+
+html.dark img,
+html.dark .leaflet-container,
+html.dark video {
+  filter: invert(1) hue-rotate(-180deg);
+}

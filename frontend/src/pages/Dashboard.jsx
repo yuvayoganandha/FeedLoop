@@ -5,6 +5,8 @@ import MapComponent from '../components/MapComponent';
 import DonateModal from '../components/DonateModal';
 import UserDashboard from './UserDashboard';
 import ProfileSetup from './ProfileSetup';
+import AssistanceModal from '../components/AssistanceModal';
+import PreferencesModal from '../components/PreferencesModal';
 import { io } from 'socket.io-client';
 import { API_BASE_URL, API_ENDPOINTS } from '../config';
 
@@ -15,6 +17,8 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [isAssistanceModalOpen, setIsAssistanceModalOpen] = useState(false);
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
   const [liveLocation, setLiveLocation] = useState(user.homeLocation || { lat: 13.0827, lng: 80.2707 });
   const [socket, setSocket] = useState(null);
   
@@ -34,7 +38,14 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
         setFoods(prev => prev.filter(f => f._id !== claimedFood._id));
     });
 
-    return () => newSocket.close();
+    const expiryTimer = setInterval(() => {
+        setFoods(prev => prev.filter(f => new Date(f.expiryTime) > new Date() && f.status !== 'claimed'));
+    }, 1000);
+
+    return () => {
+        newSocket.close();
+        clearInterval(expiryTimer);
+    };
   }, []);
 
   const fetchFoods = async () => {
@@ -110,11 +121,17 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
           <div className="pt-6 mt-6 border-t border-[#f1f3f4] mx-5">
              <p className="text-[11px] font-bold text-[#70757a] uppercase tracking-widest pl-1 mb-4">Support & Cloud</p>
              <div className="space-y-1">
-                <button className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors">
+                <button 
+                  onClick={() => setIsAssistanceModalOpen(true)}
+                  className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors"
+                >
                   <HelpCircle className="h-4 w-4" />
                   <span>Assistance</span>
                 </button>
-                <button className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors">
+                <button 
+                  onClick={() => setIsPreferencesModalOpen(true)}
+                  className="w-full flex items-center space-x-4 px-3 py-2.5 rounded-lg text-sm text-[#5f6368] hover:bg-[#f1f3f4] transition-colors"
+                >
                   <Settings className="h-4 w-4" />
                   <span>Preferences</span>
                 </button>
@@ -252,6 +269,16 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
             </div>
         </div>
       )}
+
+      <AssistanceModal 
+         isOpen={isAssistanceModalOpen} 
+         onClose={() => setIsAssistanceModalOpen(false)} 
+      />
+      
+      <PreferencesModal 
+         isOpen={isPreferencesModalOpen} 
+         onClose={() => setIsPreferencesModalOpen(false)} 
+      />
     </div>
   );
 };

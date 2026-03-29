@@ -42,23 +42,31 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
         setGeocoding(false);
     }
 
-    const submissionData = {
-        ...formData,
-        location: {
-            type: 'Point',
-            coordinates: [userLocation.lng, userLocation.lat],
-            address: finalAddress
-        }
-    };
+    const submissionData = new FormData();
+    submissionData.append('name', formData.name);
+    submissionData.append('quantity', formData.quantity);
+    submissionData.append('description', formData.description);
+    submissionData.append('phone', formData.phone);
+    submissionData.append('expiryTime', formData.expiryTime);
+    submissionData.append('location', JSON.stringify({
+        lng: userLocation.lng,
+        lat: userLocation.lat,
+        address: finalAddress
+    }));
+    
+    if (formData.image instanceof File) {
+        submissionData.append('image', formData.image);
+    } else if (formData.image) {
+        submissionData.append('image', formData.image);
+    }
 
     try {
         const res = await fetch(API_ENDPOINTS.FOOD, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(submissionData)
+            body: submissionData
         });
 
         if (res.ok) {
@@ -164,17 +172,16 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Visual Log URL (Optional)</label>
+            <label className="text-[10px] font-black text-[#70757a] uppercase tracking-widest ml-1">Visual Log (Optional)</label>
             <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#5f6368] group-focus-within:text-google-blue transition-colors">
-                    <MonitorPlay className="h-4 w-4" />
+                    <Camera className="h-4 w-4" />
                 </div>
                 <input
-                  type="text"
-                  value={formData.image}
-                  onChange={e => setFormData({ ...formData, image: e.target.value })}
-                  className="input-dark pl-11 !rounded-xl"
-                  placeholder="Paste direct image URL..."
+                  type="file"
+                  accept="image/*"
+                  onChange={e => setFormData({ ...formData, image: e.target.files[0] })}
+                  className="input-dark pl-11 !rounded-xl pt-2 pb-2 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#e8f0fe] file:text-[#4285f4] hover:file:bg-[#d2e3fc]"
                 />
             </div>
           </div>

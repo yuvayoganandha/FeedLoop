@@ -49,7 +49,7 @@ const foodSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true
+    required: false
   },
   rating: {
     type: Number,
