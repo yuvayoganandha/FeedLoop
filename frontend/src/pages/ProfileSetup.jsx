@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User, ShieldCheck, ChevronRight, Zap, Globe } from 'lucide-react';
+import { User, MapPin, Phone, ShieldCheck, ArrowRight, Save, LocateFixed, ChevronRight, Zap, Globe } from 'lucide-react';
+import { API_ENDPOINTS } from '../config';
 
 const ProfileSetup = ({ user, onComplete }) => {
   const [name, setName] = useState('');
@@ -12,7 +13,7 @@ const ProfileSetup = ({ user, onComplete }) => {
     
     setLoading(true);
     try {
-      const resp = await fetch('http://localhost:5000/api/auth/profile', {
+      const resp = await fetch(`${API_ENDPOINTS.AUTH}/profile`, {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',

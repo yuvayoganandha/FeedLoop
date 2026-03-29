@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Star, X } from 'lucide-react';
+import { API_ENDPOINTS } from '../config';
 
 const RatingModal = ({ isOpen, onClose, foodId, donorName, onSuccess }) => {
   const [rating, setRating] = useState(0);
@@ -16,7 +17,7 @@ const RatingModal = ({ isOpen, onClose, foodId, donorName, onSuccess }) => {
       setLoading(true);
 
       try {
-          const res = await fetch(`http://localhost:5000/api/food/${foodId}/rate`, {
+          const res = await fetch(`${API_ENDPOINTS.FOOD}/${foodId}/rate`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',

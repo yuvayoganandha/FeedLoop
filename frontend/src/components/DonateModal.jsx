@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, MapPin, CheckCircle, Box, CheckCircle2, LocateFixed, MonitorPlay } from 'lucide-react';
+import { API_ENDPOINTS } from '../config';
 
 const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -75,7 +76,7 @@ const DonateModal = ({ isOpen, onClose, userLocation, user, onSuccess }) => {
             }
         };
 
-        const res = await fetch('http://127.0.0.1:5000/api/food', {
+        const res = await fetch(API_ENDPOINTS.FOOD, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

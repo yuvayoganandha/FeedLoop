@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Phone, Lock, ChevronRight, ShieldCheck, Globe, Zap } from 'lucide-react';
+import { API_ENDPOINTS } from '../config';
 
 const MockAuthModal = ({ onLogin }) => {
   const [step, setStep] = useState(1);
@@ -37,7 +37,7 @@ const MockAuthModal = ({ onLogin }) => {
     }
 
     try {
-      const resp = await fetch('http://localhost:5000/api/auth/send-otp', {
+      const resp = await fetch(`${API_ENDPOINTS.AUTH}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone })
@@ -61,7 +61,7 @@ const MockAuthModal = ({ onLogin }) => {
     setError('');
     setLoading(true);
     try {
-      const resp = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const resp = await fetch(`${API_ENDPOINTS.AUTH}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp, homeLocation })

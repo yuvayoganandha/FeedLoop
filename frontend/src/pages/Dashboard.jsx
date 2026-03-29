@@ -6,6 +6,7 @@ import DonateModal from '../components/DonateModal';
 import UserDashboard from './UserDashboard';
 import ProfileSetup from './ProfileSetup';
 import { io } from 'socket.io-client';
+import { API_BASE_URL, API_ENDPOINTS } from '../config';
 
 const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [foods, setFoods] = useState([]);
@@ -22,7 +23,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
   const [locationName, setLocationName] = useState(user.homeLocation?.address || 'Chennai');
 
   useEffect(() => {
-    const newSocket = io('http://127.0.0.1:5000');
+    const newSocket = io(API_BASE_URL);
     setSocket(newSocket);
 
     newSocket.on('newFood', (food) => {
@@ -42,7 +43,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
               lat: liveLocation.lat,
               lng: liveLocation.lng
           });
-          const res = await fetch(`http://127.0.0.1:5000/api/food?${params}`);
+          const res = await fetch(`${API_ENDPOINTS.FOOD}?${params}`);
           const data = await res.json();
           setFoods(data);
       } catch(err) {

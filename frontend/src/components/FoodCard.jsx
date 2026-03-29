@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Clock, MapPin, User, Star, Utensils, Box, Archive, Timer, LocateFixed, UserCheck, Trophy, PackageSearch, PhoneCall, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import RatingModal from './RatingModal';
+import { API_ENDPOINTS } from '../config';
 
 const FoodCard = ({ food, user }) => {
   const [claiming, setClaiming] = useState(false);
@@ -15,7 +16,7 @@ const FoodCard = ({ food, user }) => {
       setError('');
       setClaiming(true);
       try {
-          const res = await fetch(`http://127.0.0.1:5000/api/food/${food._id}/claim`, {
+          const res = await fetch(`${API_ENDPOINTS.FOOD}/${food._id}/claim`, {
               method: 'POST',
               headers: { 
                   'Content-Type': 'application/json',

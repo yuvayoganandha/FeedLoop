@@ -14,8 +14,15 @@ import {
   ChevronRight,
   TrendingUp,
   History,
-  PhoneCall
+  PhoneCall,
+  CheckCircle,
+  RefreshCw,
+  Trash2,
+  Edit3,
+  X,
+  Save
 } from 'lucide-react';
+import { API_ENDPOINTS } from '../config';
 import { formatDistanceToNow } from 'date-fns';
 
 const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
@@ -27,7 +34,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
 
   const fetchActivity = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/user/activity', {
+      const res = await fetch(`${API_ENDPOINTS.USER}/activity`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
@@ -48,7 +55,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
     
     setUpdating(true);
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/food/${foodId}/complete`, {
+      const res = await fetch(`${API_ENDPOINTS.FOOD}/${foodId}/complete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -67,7 +74,7 @@ const UserDashboard = ({ user, onBack, onUpdateProfile }) => {
     e.preventDefault();
     setUpdating(true);
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/food/${editingFood._id}`, {
+      const res = await fetch(`${API_ENDPOINTS.FOOD}/${editingFood._id}`, {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',
