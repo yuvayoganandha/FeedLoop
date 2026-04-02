@@ -27,8 +27,9 @@ import { API_ENDPOINTS, API_BASE_URL } from '../config';
 // Resolve relative upload paths to absolute backend URLs (prevents ORB on cross-origin images)
 const getImageUrl = (url) => {
   if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
   if (url.startsWith('/uploads/')) return `${API_BASE_URL}${url}`;
-  return url;
+  return `${API_BASE_URL}/uploads/${url}`;
 };
 import { formatDistanceToNow } from 'date-fns';
 

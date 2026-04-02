@@ -34,7 +34,16 @@ router.post('/', authReq, upload.single('image'), async (req, res) => {
 
     let image = req.body.image || '';
     if (req.file) {
-      image = '/uploads/' + req.file.filename;
+      const fs = require('fs');
+      try {
+        const bitmap = fs.readFileSync(req.file.path);
+        const base64Str = bitmap.toString('base64');
+        image = `data:${req.file.mimetype};base64,${base64Str}`;
+        // Clean up the local file so it doesn't take up space
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error('Base64 conversion error:', err);
+      }
     }
     
     const newFood = new Food({

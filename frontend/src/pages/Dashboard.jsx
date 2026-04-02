@@ -37,7 +37,7 @@ const Dashboard = ({ user, onLogout, onProfileUpdate }) => {
           });
           setLocationName('Current Location');
         },
-        (error) => console.log('Geolocation not supported or denied')
+        (error) => { /* Geolocation ignored or denied */ }
       );
     }
   }, []);

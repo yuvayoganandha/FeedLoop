@@ -13,8 +13,9 @@ const FoodCard = ({ food, user }) => {
   
   const getImageUrl = (url) => {
     if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
     if (url.startsWith('/uploads/')) return `${API_BASE_URL}${url}`;
-    return url;
+    return `${API_BASE_URL}/uploads/${url}`;
   };
 
   // Keep ref in sync if food prop changes

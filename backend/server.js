@@ -75,7 +75,15 @@ app.use(express.json());
 app.use('/uploads', (req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
-}, express.static(uploadDir));
+}, express.static(uploadDir), (req, res) => {
+    // Return a 1x1 transparent GIF to cleanly handle missing images without triggering browser ORB warnings or aborts
+    const fallbackImage = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+    res.writeHead(200, {
+        'Content-Type': 'image/gif',
+        'Content-Length': fallbackImage.length
+    });
+    res.end(fallbackImage);
+});
 
 // Root & Health Check Endpoints (Vital for Render Monitoring)
 app.get('/', (req, res) => {
